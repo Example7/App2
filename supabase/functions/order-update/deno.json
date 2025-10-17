@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"]
+  },
+  "importMap": "./import_map.json",
+  "deploy": {
+    "verify_jwt": false
+  }
+}
