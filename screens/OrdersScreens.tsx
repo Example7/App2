@@ -37,6 +37,24 @@ export default function OrdersScreen() {
     fetchOrders();
   }, [filter, sortOrder]);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("orders-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        (payload) => {
+          console.log("Realtime event:", payload);
+          fetchOrders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const fetchOrders = async () => {
     setLoading(true);
 
