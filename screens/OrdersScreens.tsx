@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, ScrollView, TouchableOpacity } from "react-native";
-import { Text, Card, ActivityIndicator } from "react-native-paper";
+import { Text, Card, ActivityIndicator, Divider } from "react-native-paper";
 import { supabase } from "../lib/supabase";
 
 type Order = {
-  id: number;
+  id: string;
   created_at: string;
   total: number;
   status: string;
@@ -12,7 +12,7 @@ type Order = {
 
 type OrderItem = {
   id: number;
-  order_id: number;
+  order_id: string;
   product_id: number;
   quantity: number;
   price: number;
@@ -31,10 +31,6 @@ export default function OrdersScreen() {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
-
-  useEffect(() => {
-    fetchOrders();
   }, [filter, sortOrder]);
 
   useEffect(() => {
@@ -43,8 +39,7 @@ export default function OrdersScreen() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
-        (payload) => {
-          console.log("Realtime event:", payload);
+        () => {
           fetchOrders();
         }
       )
@@ -108,6 +103,17 @@ export default function OrdersScreen() {
     setLoading(false);
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Zakończone":
+        return "#2ecc71";
+      case "Anulowane":
+        return "#e74c3c";
+      default:
+        return "#f1c40f";
+    }
+  };
+
   if (loading) {
     return (
       <View
@@ -115,47 +121,74 @@ export default function OrdersScreen() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#fff",
+          backgroundColor: "#f5f6fa",
         }}
       >
         <ActivityIndicator size="large" />
-        <Text>Wczytywanie zamówień...</Text>
+        <Text style={{ marginTop: 10 }}>Wczytywanie zamówień...</Text>
       </View>
     );
   }
 
   return (
     <ScrollView
-      style={{ flex: 1, padding: 16, backgroundColor: "#fff" }}
+      style={{ flex: 1, padding: 16, backgroundColor: "#f5f6fa" }}
       showsVerticalScrollIndicator={false}
     >
-      <Text variant="headlineSmall" style={{ marginBottom: 16 }}>
+      <Text
+        variant="headlineSmall"
+        style={{
+          fontWeight: "700",
+          marginBottom: 6,
+        }}
+      >
         Moje zamówienia
+      </Text>
+      <Text style={{ color: "#666", marginBottom: 20 }}>
+        Przeglądaj historię swoich zamówień
       </Text>
 
       <View
         style={{
           flexDirection: "row",
           marginBottom: 20,
-          justifyContent: "space-between",
+          gap: 12,
         }}
       >
-        <View style={{ flex: 1, marginRight: 8 }}>
-          <Text variant="titleSmall" style={{ marginBottom: 6 }}>
-            Filtruj status:
+        <View style={{ flex: 1 }}>
+          <Text
+            variant="titleSmall"
+            style={{ marginBottom: 8, fontWeight: "600" }}
+          >
+            Filtr statusu
           </Text>
-          <Card style={{ padding: 8 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 6,
+            }}
+          >
             {["Wszystkie", "W realizacji", "Zakończone", "Anulowane"].map(
               (status) => (
                 <TouchableOpacity
                   key={status}
                   onPress={() => setFilter(status)}
+                  style={{
+                    backgroundColor:
+                      filter === status ? "#4caf50" : "transparent",
+                    borderWidth: 1,
+                    borderColor:
+                      filter === status ? "#4caf50" : "rgba(0,0,0,0.2)",
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: 8,
+                  }}
                 >
                   <Text
                     style={{
-                      paddingVertical: 2,
-                      color: filter === status ? "#4caf50" : "#333",
-                      fontWeight: filter === status ? "bold" : "normal",
+                      color: filter === status ? "#fff" : "#333",
+                      fontWeight: filter === status ? "600" : "400",
                     }}
                   >
                     {status}
@@ -163,96 +196,118 @@ export default function OrdersScreen() {
                 </TouchableOpacity>
               )
             )}
-          </Card>
+          </View>
         </View>
 
         <View style={{ flex: 1 }}>
-          <Text variant="titleSmall" style={{ marginBottom: 6 }}>
-            Sortuj wg daty:
+          <Text
+            variant="titleSmall"
+            style={{ marginBottom: 8, fontWeight: "600" }}
+          >
+            Sortowanie
           </Text>
-          <Card style={{ padding: 8 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 6,
+            }}
+          >
             {[
-              { label: "Od najnowszych", value: "desc" },
-              { label: "Od najstarszych", value: "asc" },
+              { label: "Najnowsze", value: "desc" },
+              { label: "Najstarsze", value: "asc" },
             ].map((option) => (
               <TouchableOpacity
                 key={option.value}
                 onPress={() => setSortOrder(option.value as "asc" | "desc")}
+                style={{
+                  backgroundColor:
+                    sortOrder === option.value ? "#2196f3" : "transparent",
+                  borderWidth: 1,
+                  borderColor:
+                    sortOrder === option.value ? "#2196f3" : "rgba(0,0,0,0.2)",
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: 8,
+                }}
               >
                 <Text
                   style={{
-                    paddingVertical: 2,
-                    color: sortOrder === option.value ? "#4caf50" : "#333",
-                    fontWeight: sortOrder === option.value ? "bold" : "normal",
+                    color: sortOrder === option.value ? "#fff" : "#333",
+                    fontWeight: sortOrder === option.value ? "600" : "400",
                   }}
                 >
                   {option.label}
                 </Text>
               </TouchableOpacity>
             ))}
-          </Card>
+          </View>
         </View>
       </View>
 
       {orders.length === 0 ? (
-        <Text>Nie masz jeszcze żadnych zamówień.</Text>
+        <View
+          style={{
+            alignItems: "center",
+            marginTop: 40,
+          }}
+        >
+          <Text style={{ opacity: 0.6 }}>
+            Nie masz jeszcze żadnych zamówień
+          </Text>
+        </View>
       ) : (
         orders.map((order) => {
           const items = orderItems.filter((i) => i.order_id === order.id);
-          return (
-            <Card key={order.id} style={{ marginBottom: 16 }}>
-              <Card.Title
-                title={`Zamówienie #${order.id}`}
-                subtitle={`Data: ${new Date(
-                  order.created_at
-                ).toLocaleString()}`}
-                left={() => {
-                  const color =
-                    order.status === "Zakończone"
-                      ? "green"
-                      : order.status === "Anulowane"
-                      ? "red"
-                      : "orange";
-                  return <Text style={{ fontSize: 22, color }}>⬤</Text>;
-                }}
-              />
+          const color = getStatusColor(order.status);
 
-              <Card.Content>
+          return (
+            <Card
+              key={order.id}
+              style={{
+                marginBottom: 16,
+                borderRadius: 14,
+                backgroundColor: "#fff",
+                elevation: 3,
+              }}
+            >
+              <Card.Title
+                title={`Zamówienie #${order.id.slice(0, 6).toUpperCase()}`}
+                subtitle={new Date(order.created_at).toLocaleString()}
+                right={() => (
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "600",
+                      color,
+                      marginRight: 10,
+                    }}
+                  >
+                    {order.status}
+                  </Text>
+                )}
+              />
+              <Divider />
+              <Card.Content style={{ paddingTop: 8 }}>
                 {items.length > 0 ? (
                   items.map((item) => (
-                    <Text key={item.id}>
+                    <Text key={item.id} style={{ marginVertical: 2 }}>
                       • {item.products?.name || "Produkt"} x {item.quantity} —{" "}
-                      {item.price * item.quantity} zł
+                      {(item.price * item.quantity).toFixed(2)} zł
                     </Text>
                   ))
                 ) : (
                   <Text>Brak pozycji w tym zamówieniu.</Text>
                 )}
 
-                <Text style={{ marginTop: 8, fontWeight: "bold" }}>
-                  Status:{" "}
-                  <Text
-                    style={{
-                      color:
-                        order.status === "Zakończone"
-                          ? "green"
-                          : order.status === "Anulowane"
-                          ? "red"
-                          : "orange",
-                    }}
-                  >
-                    {order.status}
-                  </Text>
-                </Text>
-
+                <Divider style={{ marginVertical: 8 }} />
                 <Text
                   style={{
                     textAlign: "right",
-                    marginTop: 8,
-                    fontWeight: "bold",
+                    fontWeight: "700",
+                    fontSize: 16,
                   }}
                 >
-                  Suma: {order.total} zł
+                  Suma: {order.total.toFixed(2)} zł
                 </Text>
               </Card.Content>
             </Card>

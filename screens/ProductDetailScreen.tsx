@@ -1,32 +1,114 @@
 import React from "react";
-import { View } from "react-native";
-import { Text, Button, Card } from "react-native-paper";
+import { View, ScrollView, Image } from "react-native";
+import { Text, Button, IconButton } from "react-native-paper";
+import { useCartStore } from "../store/useCartStore";
+import { useFavoritesStore } from "../store/useFavoritesStore";
 
 export default function ProductDetailsScreen({ route, navigation }: any) {
   const { product } = route.params;
+  const addToCart = useCartStore((s) => s.addToCart);
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
 
   return (
-    <View style={{ flex: 1, padding: 16, backgroundColor: "#fff" }}>
-      <Card>
-        <Card.Title title={product.name} />
-        <Card.Content>
-          <Text variant="titleLarge" style={{ marginBottom: 10 }}>
-            Cena: {product.price} zł
-          </Text>
-          <Text style={{ color: "#666" }}>
-            Tutaj możesz dodać opis produktu lub inne szczegóły.
-          </Text>
-        </Card.Content>
-        <Card.Actions>
-          <Button mode="contained" onPress={() => alert("Dodano do koszyka!")}>
-            Dodaj do koszyka
-          </Button>
-        </Card.Actions>
-      </Card>
+    <ScrollView style={{ flex: 1, backgroundColor: "#f5f6fa" }}>
+      <View style={{ padding: 16 }}>
+        {product.image_url ? (
+          <Image
+            source={{ uri: product.image_url }}
+            style={{
+              width: "100%",
+              height: 280,
+              borderRadius: 14,
+              marginBottom: 16,
+            }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View
+            style={{
+              width: "100%",
+              height: 280,
+              backgroundColor: "#e0e0e0",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 14,
+              marginBottom: 16,
+            }}
+          >
+            <Text style={{ color: "#777" }}>Brak zdjęcia</Text>
+          </View>
+        )}
 
-      <Button style={{ marginTop: 20 }} onPress={() => navigation.goBack()}>
-        Wróć
-      </Button>
-    </View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: "700",
+              color: "#222",
+              flex: 1,
+              marginRight: 10,
+            }}
+          >
+            {product.name}
+          </Text>
+
+          <IconButton
+            icon={isFavorite(product.id) ? "heart" : "heart-outline"}
+            iconColor={isFavorite(product.id) ? "#e74c3c" : "#555"}
+            size={26}
+            onPress={() => toggleFavorite(product.id)}
+          />
+        </View>
+
+        <Text style={{ fontSize: 18, color: "#2196f3", fontWeight: "700" }}>
+          {product.price.toFixed(2)} zł
+        </Text>
+
+        <Text
+          style={{
+            marginTop: 16,
+            fontSize: 15,
+            lineHeight: 22,
+            color: "#555",
+          }}
+        >
+          {product.description ||
+            "Brak dodatkowych informacji o tym produkcie."}
+        </Text>
+
+        <Button
+          mode="contained"
+          onPress={() => {
+            addToCart(product);
+            navigation.goBack();
+          }}
+          style={{
+            marginTop: 30,
+            backgroundColor: "#4caf50",
+            borderRadius: 10,
+            paddingVertical: 6,
+          }}
+          labelStyle={{ fontSize: 16, fontWeight: "600", color: "#fff" }}
+        >
+          Dodaj do koszyka
+        </Button>
+
+        <Button
+          mode="text"
+          onPress={() => navigation.goBack()}
+          style={{ marginTop: 12 }}
+          labelStyle={{ color: "#555" }}
+        >
+          Wróć
+        </Button>
+      </View>
+    </ScrollView>
   );
 }
