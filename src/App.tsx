@@ -2,15 +2,8 @@ import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import {
-  Provider as PaperProvider,
-  ActivityIndicator,
-  Text,
-  Icon,
-} from "react-native-paper";
-import { View } from "react-native";
-import { supabase } from "./lib";
-import { LoadingView } from "./components";
+import { Provider as PaperProvider, Icon } from "react-native-paper";
+import { useAuthStore } from "./store/useAuthStore";
 
 import LoginScreen from "./features/auth/LoginScreen";
 import RegisterScreen from "./features/auth/RegisterScreen";
@@ -21,6 +14,7 @@ import ProfileScreen from "./features/profile/ProfileScreen";
 import CartIconWithBadge from "./components/CartIconWithBadge";
 import FavoritesScreen from "./features/favorites/FavoritesScreen";
 import ProductDetailScreen from "./features/products/ProductDetailScreen";
+import SplashScreen from "./features/auth/SplashScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,7 +38,6 @@ function AppTabs() {
           ),
         }}
       />
-
       <Tab.Screen
         name="Cart"
         component={CartScreen}
@@ -53,7 +46,6 @@ function AppTabs() {
           tabBarIcon: () => <CartIconWithBadge />,
         }}
       />
-
       <Tab.Screen
         name="Orders"
         component={OrdersScreen}
@@ -64,7 +56,6 @@ function AppTabs() {
           ),
         }}
       />
-
       <Tab.Screen
         name="Favorites"
         component={FavoritesScreen}
@@ -75,7 +66,6 @@ function AppTabs() {
           ),
         }}
       />
-
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -91,27 +81,22 @@ function AppTabs() {
 }
 
 export default function App() {
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { session, loading, fetchSession } = useAuthStore();
+  const [splashVisible, setSplashVisible] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    fetchSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      }
-    );
+    const timer = setTimeout(() => {
+      setSplashVisible(false);
+    }, 1500);
 
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <LoadingView message="Wczytywanie..." />;
+  if (loading || splashVisible) {
+    return <SplashScreen />;
+  }
 
   return (
     <PaperProvider>
@@ -124,7 +109,6 @@ export default function App() {
                 component={AppTabs}
                 options={{ headerShown: false }}
               />
-
               <Stack.Screen
                 name="ProductDetails"
                 component={ProductDetailScreen}
