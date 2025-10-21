@@ -6,8 +6,10 @@ import { useFavoritesStore } from "../../store/useFavoritesStore";
 import { useCartStore } from "../../store/useCartStore";
 import { LoadingView, EmptyState } from "../../components";
 import ProductCard from "../products/components/ProductCard";
+import { useTranslation } from "react-i18next";
 
 export default function FavoritesScreen() {
+  const { t } = useTranslation();
   const { favorites, fetchFavorites, toggleFavorite } = useFavoritesStore();
   const addToCart = useCartStore((s) => s.addToCart);
   const [products, setProducts] = useState<any[]>([]);
@@ -35,17 +37,26 @@ export default function FavoritesScreen() {
       .select("*")
       .in("id", ids);
 
-    if (error) console.error("Błąd pobierania ulubionych:", error);
+    if (error) console.error(t("common.error"), error);
     setProducts(data || []);
     setLoading(false);
   };
 
   if (loading)
-    return <LoadingView message="Wczytywanie ulubionych produktów..." />;
+    return (
+      <LoadingView
+        message={t("favorites.loading", {
+          defaultValue: "Loading favorites...",
+        })}
+      />
+    );
 
   if (products.length === 0)
     return (
-      <EmptyState icon="heart-outline" message="Brak ulubionych produktów" />
+      <EmptyState
+        icon="heart-outline"
+        message={t("favorites.empty", { defaultValue: "No favorite products" })}
+      />
     );
 
   return (
@@ -54,7 +65,7 @@ export default function FavoritesScreen() {
         variant="headlineSmall"
         style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
       >
-        Twoje ulubione produkty
+        {t("favorites.subtitle")}
       </Text>
 
       <View style={{ gap: 12 }}>

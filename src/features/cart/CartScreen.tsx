@@ -6,30 +6,27 @@ import { supabase } from "../../lib/supabase";
 import { formatPrice } from "../../lib/helpers";
 import { EmptyState } from "../../components";
 import { useSnackbar } from "../../hooks/useSnackbar";
+import { useTranslation } from "react-i18next";
 
 export default function CartScreen() {
   const { items, removeFromCart, clearCart, getTotal, getCount } =
     useCartStore();
-
   const total = getTotal();
   const count = getCount();
   const snackbar = useSnackbar();
+  const { t } = useTranslation();
 
   const placeOrder = async () => {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
 
     if (!user) {
-      snackbar.show(
-        "Musisz być zalogowany, aby złożyć zamówienie!",
-        3000,
-        "#e74c3c"
-      );
+      snackbar.show(t("orders.loginRequired"), 3000, "#e74c3c");
       return;
     }
 
     if (items.length === 0) {
-      snackbar.show("Koszyk jest pusty!", 3000, "#e74c3c");
+      snackbar.show(t("orders.empty"), 3000, "#e74c3c");
       return;
     }
 
@@ -39,7 +36,7 @@ export default function CartScreen() {
         {
           user_id: user.id,
           total: getTotal(),
-          status: "W realizacji",
+          status: t("orders.inProgress"),
         },
       ])
       .select()
@@ -47,7 +44,7 @@ export default function CartScreen() {
 
     if (orderError) {
       console.error(orderError);
-      snackbar.show("Nie udało się utworzyć zamówienia!", 3000, "#e74c3c");
+      snackbar.show(t("orders.createError"), 3000, "#e74c3c");
       return;
     }
 
@@ -64,36 +61,32 @@ export default function CartScreen() {
 
     if (itemsError) {
       console.error(itemsError);
-      snackbar.show(
-        "Nie udało się zapisać produktów zamówienia!",
-        3000,
-        "#e74c3c"
-      );
+      snackbar.show(t("orders.itemsError"), 3000, "#e74c3c");
       return;
     }
 
     clearCart();
-    snackbar.show("Zamówienie zostało pomyślnie złożone!");
+    snackbar.show(t("orders.success"));
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f5f6fa" }}>
       {count === 0 ? (
-        <EmptyState icon="cart-outline" message="Twój koszyk jest pusty" />
+        <EmptyState icon="cart-outline" message={t("cart.empty")} />
       ) : (
         <ScrollView style={{ flex: 1, padding: 16 }}>
           <Text
             variant="headlineSmall"
             style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
           >
-            Twój koszyk ({count})
+            {t("cart.title")} ({count})
           </Text>
 
           {items.map((item) => (
             <Card key={item.id} style={{ marginBottom: 12, borderRadius: 12 }}>
               <Card.Title
                 title={item.name}
-                subtitle={`${item.quantity} szt.`}
+                subtitle={`${item.quantity} ${t("cart.pieces")}`}
               />
               <Card.Content>
                 <Text>{formatPrice(item.price * item.quantity)}</Text>
@@ -103,7 +96,7 @@ export default function CartScreen() {
                   textColor="#e74c3c"
                   onPress={() => removeFromCart(item.id)}
                 >
-                  Usuń
+                  {t("cart.remove")}
                 </Button>
               </Card.Actions>
             </Card>
@@ -112,7 +105,7 @@ export default function CartScreen() {
           <Divider style={{ marginVertical: 12 }} />
 
           <Text style={{ textAlign: "right", fontWeight: "700", fontSize: 18 }}>
-            Suma: {formatPrice(total)}
+            {t("cart.total")}: {formatPrice(total)}
           </Text>
 
           <Button
@@ -120,7 +113,7 @@ export default function CartScreen() {
             style={{ marginTop: 20, backgroundColor: "#4caf50" }}
             onPress={placeOrder}
           >
-            Złóż zamówienie
+            {t("cart.placeOrder")}
           </Button>
 
           <Button
@@ -129,7 +122,7 @@ export default function CartScreen() {
             style={{ marginTop: 10 }}
             onPress={clearCart}
           >
-            Wyczyść koszyk
+            {t("cart.clear")}
           </Button>
         </ScrollView>
       )}

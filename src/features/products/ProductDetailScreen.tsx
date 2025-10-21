@@ -1,13 +1,21 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { View, ScrollView, Image } from "react-native";
 import { Text, Button, IconButton } from "react-native-paper";
 import { useCartStore } from "../../store/useCartStore";
 import { useFavoritesStore } from "../../store/useFavoritesStore";
+import { useTranslation } from "react-i18next";
 
 export default function ProductDetailsScreen({ route, navigation }: any) {
+  const { t } = useTranslation();
   const { product } = route.params;
   const addToCart = useCartStore((s) => s.addToCart);
   const { isFavorite, toggleFavorite } = useFavoritesStore();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: t("home.productDetails"),
+    });
+  }, [navigation, t]);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#f5f6fa" }}>
@@ -35,7 +43,7 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
               marginBottom: 16,
             }}
           >
-            <Text style={{ color: "#777" }}>Brak zdjęcia</Text>
+            <Text style={{ color: "#777" }}>{t("home.noImage")}</Text>
           </View>
         )}
 
@@ -80,7 +88,9 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
           }}
         >
           {product.description ||
-            "Brak dodatkowych informacji o tym produkcie."}
+            t("home.noDescription", {
+              defaultValue: "No additional information about this product.",
+            })}
         </Text>
 
         <Button
@@ -97,7 +107,7 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
           }}
           labelStyle={{ fontSize: 16, fontWeight: "600", color: "#fff" }}
         >
-          Dodaj do koszyka
+          {t("home.addToCart")}
         </Button>
 
         <Button
@@ -106,7 +116,7 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
           style={{ marginTop: 12 }}
           labelStyle={{ color: "#555" }}
         >
-          Wróć
+          {t("common.back")}
         </Button>
       </View>
     </ScrollView>

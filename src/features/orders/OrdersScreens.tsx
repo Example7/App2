@@ -4,13 +4,25 @@ import { Text, Card, Divider } from "react-native-paper";
 import { supabase, formatDate, formatPrice, shortId } from "../../lib";
 import { Order, OrderItem } from "../../types";
 import { LoadingView, EmptyState } from "../../components";
+import { useTranslation } from "react-i18next";
+
+type FilterKey = "all" | "inProgress" | "completed" | "cancelled";
 
 export default function OrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("Wszystkie");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const { t } = useTranslation();
+
+  const [filter, setFilter] = useState<FilterKey>("all");
+
+  const statusMap: Record<FilterKey, string> = {
+    all: "Wszystkie",
+    inProgress: "W realizacji",
+    completed: "Zakończone",
+    cancelled: "Anulowane",
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -37,7 +49,7 @@ export default function OrdersScreen() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
     if (!user) {
-      alert("Musisz być zalogowany, aby zobaczyć swoje zamówienia!");
+      alert(t("cart.loginRequired"));
       setLoading(false);
       return;
     }
@@ -50,14 +62,14 @@ export default function OrdersScreen() {
 
     if (ordersError) {
       console.error(ordersError);
-      alert("Nie udało się pobrać zamówień!");
+      alert(t("common.error"));
       setLoading(false);
       return;
     }
 
     let filtered = ordersData || [];
-    if (filter !== "Wszystkie") {
-      filtered = filtered.filter((o) => o.status === filter);
+    if (filter !== "all") {
+      filtered = filtered.filter((o) => o.status === statusMap[filter]);
     }
 
     setOrders(filtered);
@@ -73,7 +85,7 @@ export default function OrdersScreen() {
 
       if (itemsError) {
         console.error(itemsError);
-        alert("Nie udało się pobrać pozycji zamówień!");
+        alert(t("orders.itemsError"));
       } else {
         setOrderItems(itemsData || []);
       }
@@ -86,16 +98,16 @@ export default function OrdersScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Zakończone":
+      case t("orders.completed"):
         return "#2ecc71";
-      case "Anulowane":
+      case t("orders.cancelled"):
         return "#e74c3c";
       default:
         return "#f1c40f";
     }
   };
 
-  if (loading) return <LoadingView message="Wczytywanie zamówień..." />;
+  if (loading) return <LoadingView message={t("common.loading")} />;
 
   return (
     <ScrollView
@@ -106,10 +118,10 @@ export default function OrdersScreen() {
         variant="headlineSmall"
         style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
       >
-        Moje zamówienia
+        {t("orders.title")}
       </Text>
       <Text style={{ color: "#666", marginBottom: 20 }}>
-        Przeglądaj historię swoich zamówień
+        {t("orders.subtitle", { defaultValue: "Browse your order history" })}
       </Text>
 
       <View
@@ -124,36 +136,42 @@ export default function OrdersScreen() {
             variant="titleSmall"
             style={{ marginBottom: 8, fontWeight: "600" }}
           >
-            Filtr statusu
+            {t("orders.filter")}
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-            {["Wszystkie", "W realizacji", "Zakończone", "Anulowane"].map(
-              (status) => (
-                <TouchableOpacity
-                  key={status}
-                  onPress={() => setFilter(status)}
+            {[
+              { key: "all", label: t("orders.all", { defaultValue: "All" }) },
+              { key: "inProgress", label: t("orders.inProgress") },
+              { key: "completed", label: t("orders.completed") },
+              {
+                key: "cancelled",
+                label: t("orders.cancelled", { defaultValue: "Cancelled" }),
+              },
+            ].map((option) => (
+              <TouchableOpacity
+                key={option.key}
+                onPress={() => setFilter(option.key as FilterKey)}
+                style={{
+                  backgroundColor:
+                    filter === option.key ? "#4caf50" : "transparent",
+                  borderWidth: 1,
+                  borderColor:
+                    filter === option.key ? "#4caf50" : "rgba(0,0,0,0.2)",
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: 8,
+                }}
+              >
+                <Text
                   style={{
-                    backgroundColor:
-                      filter === status ? "#4caf50" : "transparent",
-                    borderWidth: 1,
-                    borderColor:
-                      filter === status ? "#4caf50" : "rgba(0,0,0,0.2)",
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    borderRadius: 8,
+                    color: filter === option.key ? "#fff" : "#333",
+                    fontWeight: filter === option.key ? "600" : "400",
                   }}
                 >
-                  <Text
-                    style={{
-                      color: filter === status ? "#fff" : "#333",
-                      fontWeight: filter === status ? "600" : "400",
-                    }}
-                  >
-                    {status}
-                  </Text>
-                </TouchableOpacity>
-              )
-            )}
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -162,12 +180,18 @@ export default function OrdersScreen() {
             variant="titleSmall"
             style={{ marginBottom: 8, fontWeight: "600" }}
           >
-            Sortowanie
+            {t("orders.sort")}
           </Text>
           <View style={{ flexDirection: "row", gap: 6 }}>
             {[
-              { label: "Najnowsze", value: "desc" },
-              { label: "Najstarsze", value: "asc" },
+              {
+                label: t("orders.newest", { defaultValue: "Newest" }),
+                value: "desc",
+              },
+              {
+                label: t("orders.oldest", { defaultValue: "Oldest" }),
+                value: "asc",
+              },
             ].map((option) => (
               <TouchableOpacity
                 key={option.value}
@@ -200,7 +224,7 @@ export default function OrdersScreen() {
       {orders.length === 0 ? (
         <EmptyState
           icon="clipboard-list-outline"
-          message="Nie masz jeszcze żadnych zamówień"
+          message={t("orders.noOrders")}
         />
       ) : (
         orders.map((order) => {
@@ -218,7 +242,7 @@ export default function OrdersScreen() {
               }}
             >
               <Card.Title
-                title={`Zamówienie #${shortId(order.id)}`}
+                title={`${t("orders.order")} #${shortId(order.id)}`}
                 subtitle={formatDate(order.created_at)}
                 right={() => (
                   <Text
@@ -238,12 +262,17 @@ export default function OrdersScreen() {
                 {items.length > 0 ? (
                   items.map((item) => (
                     <Text key={item.id} style={{ marginVertical: 2 }}>
-                      • {item.products?.name || "Produkt"} x {item.quantity} —{" "}
+                      • {item.products?.name || t("orders.product")} x{" "}
+                      {item.quantity} —{" "}
                       {formatPrice(item.price * item.quantity)}
                     </Text>
                   ))
                 ) : (
-                  <Text>Brak pozycji w tym zamówieniu.</Text>
+                  <Text>
+                    {t("orders.noItems", {
+                      defaultValue: "No items in this order.",
+                    })}
+                  </Text>
                 )}
 
                 <Divider style={{ marginVertical: 8 }} />
@@ -254,7 +283,7 @@ export default function OrdersScreen() {
                     fontSize: 16,
                   }}
                 >
-                  Suma: {formatPrice(order.total)}
+                  {t("orders.total")}: {formatPrice(order.total)}
                 </Text>
               </Card.Content>
             </Card>

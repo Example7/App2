@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types";
 import { LoadingView, EmptyState } from "../../components";
 import { filterProducts } from "../../lib/helpers";
+import { useTranslation } from "react-i18next";
 
 export default function HomeScreen() {
   const [products, setProducts] = useState<any[]>([]);
@@ -18,6 +19,8 @@ export default function HomeScreen() {
 
   const addToCart = useCartStore((s) => s.addToCart);
   const { toggleFavorite, isFavorite, fetchFavorites } = useFavoritesStore();
+
+  const { t } = useTranslation();
 
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -48,7 +51,7 @@ export default function HomeScreen() {
         variant="headlineSmall"
         style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
       >
-        Dostępne produkty
+        {t("home.availableProducts")}
       </Text>
 
       <View
@@ -64,7 +67,7 @@ export default function HomeScreen() {
       >
         <IconButton icon="magnify" size={22} />
         <TextInput
-          placeholder="Szukaj produktów..."
+          placeholder={t("home.searchPlaceholder")}
           value={query}
           onChangeText={setQuery}
           style={{

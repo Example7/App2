@@ -2,6 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { Card, Text, Button, IconButton } from "react-native-paper";
 import { Product } from "../../../types/models";
+import { useTranslation } from "react-i18next";
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +17,8 @@ export default function ProductCard({
   onToggleFavorite,
   onAddToCart,
 }: ProductCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Card
       style={{
@@ -125,7 +128,7 @@ export default function ProductCard({
                 color: "#fff",
               }}
             >
-              Dodaj do koszyka
+              {t("home.addToCart")}
             </Button>
           )}
         </View>

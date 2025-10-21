@@ -1,0 +1,101 @@
+{
+  "home": {
+    "title": "Sklep",
+    "searchPlaceholder": "Wyszukaj produkt...",
+    "addToCart": "Dodaj do koszyka",
+    "noImage": "Brak zdjęcia",
+    "noProducts": "Brak dostępnych produktów",
+    "availableProducts": "Dostępne produkty",
+    "noDescription": "Brak dodatkowych informacji o tym produkcie.",
+    "productDetails": "Szczegóły produktu"
+  },
+  "cart": {
+    "title": "Koszyk",
+    "empty": "Twój koszyk jest pusty",
+    "remove": "Usuń",
+    "clear": "Wyczyść koszyk",
+    "order": "Złóż zamówienie",
+    "summary": "Suma",
+    "loginRequired": "Musisz być zalogowany, aby złożyć zamówienie!",
+    "emptyError": "Koszyk jest pusty!",
+    "orderError": "Nie udało się utworzyć zamówienia!",
+    "itemsError": "Nie udało się zapisać produktów zamówienia!",
+    "orderSuccess": "Zamówienie zostało pomyślnie złożone!"
+  },
+  "orders": {
+    "title": "Zamówienia",
+    "subtitle": "Przeglądaj historię swoich zamówień",
+    "filter": "Filtr statusu",
+    "sort": "Sortowanie",
+    "all": "Wszystkie",
+    "inProgress": "W realizacji",
+    "completed": "Zakończone",
+    "cancelled": "Anulowane",
+    "newest": "Najnowsze",
+    "oldest": "Najstarsze",
+    "order": "Zamówienie",
+    "product": "Produkt",
+    "noItems": "Brak pozycji w tym zamówieniu",
+    "itemsError": "Nie udało się pobrać pozycji zamówień!",
+    "noOrders": "Brak zamówień",
+    "total": "Łączna kwota"
+  },
+  "favorites": {
+    "title": "Ulubione",
+    "subtitle": "Twoje ulubione produkty",
+    "empty": "Brak ulubionych produktów"
+  },
+  "profile": {
+    "title": "Profil",
+    "name": "Imię i nazwisko",
+    "phone": "Telefon",
+    "address": "Adres",
+    "bio": "Bio",
+    "save": "Zapisz zmiany",
+    "logout": "Wyloguj się",
+    "updated": "Profil zapisany!",
+    "fetchError": "Nie udało się pobrać profilu!",
+    "saveError": "Nie udało się zapisać zmian!",
+    "avatarUpdate": "Avatar zaktualizowany!",
+    "avatarError": "Błąd podczas przesyłania avatara!",
+    "noProfile": "Brak danych profilu!",
+    "invalidName": "Imię i nazwisko nie może być puste!",
+    "invalidPhone": "Numer telefonu jest niepoprawny!",
+    "lastUpdate": "Ostatnia aktualizacja",
+    "logoutSuccess": "Wylogowano!",
+    "loading": "Wczytywanie profilu...",
+    "changeAvatar": "Zmień avatar",
+    "summary": "Podsumowanie profilu:",
+    "noPhone": "Brak numeru",
+    "noAddress": "Brak adresu",
+    "noBio": "Brak opisu"
+  },
+  "auth": {
+    "login": "Logowanie",
+    "register": "Rejestracja",
+    "email": "Email",
+    "password": "Hasło",
+    "confirmPassword": "Potwierdź hasło",
+    "loginButton": "Zaloguj się",
+    "registerButton": "Zarejestruj się",
+    "noAccount": "Nie masz konta? Zarejestruj się",
+    "haveAccount": "Masz już konto? Zaloguj się",
+    "loginError": "Niepoprawne dane logowania!",
+    "loginSuccess": "Zalogowano pomyślnie!",
+    "registerError": "Nie udało się zarejestrować!",
+    "registerSuccess": "Rejestracja zakończona! Możesz się zalogować.",
+    "invalidEmail": "Niepoprawny adres e-mail!",
+    "invalidPassword": "Hasło musi mieć min. 6 znaków, dużą literę i cyfrę!",
+    "passwordMismatch": "Hasła muszą być identyczne!"
+  },
+  "splash": {
+    "title": "TechShop",
+    "loading": "Ładowanie..."
+  },
+  "common": {
+    "loading": "Wczytywanie...",
+    "error": "Wystąpił błąd",
+    "retry": "Spróbuj ponownie",
+    "back": "Powrót"
+  }
+}

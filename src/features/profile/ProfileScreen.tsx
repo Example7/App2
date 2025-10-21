@@ -1,3 +1,4 @@
+import i18n from "../../i18n";
 import React, { useEffect, useState } from "react";
 import { Image, ScrollView } from "react-native";
 import { Text, Button, TextInput, Card } from "react-native-paper";
@@ -11,8 +12,10 @@ import {
 import { Profile } from "../../types";
 import { LoadingView } from "../../components";
 import { useSnackbar } from "../../hooks/useSnackbar";
+import { useTranslation } from "react-i18next";
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -32,7 +35,11 @@ export default function ProfileScreen() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
     if (!user) {
-      snackbar.show("Musisz być zalogowany!", 3000, "#e74c3c");
+      snackbar.show(
+        t("profile.loginRequired", { defaultValue: "You must be logged in!" }),
+        3000,
+        "#e74c3c"
+      );
       setLoading(false);
       return;
     }
@@ -45,7 +52,7 @@ export default function ProfileScreen() {
 
     if (error) {
       console.error(error);
-      snackbar.show("Nie udało się pobrać profilu!", 3000, "#e74c3c");
+      snackbar.show(t("profile.fetchError"), 3000, "#e74c3c");
     } else if (data) {
       setProfile(data);
       setName(data.full_name || "");
@@ -89,7 +96,7 @@ export default function ProfileScreen() {
 
       if (uploadError) {
         console.error(uploadError);
-        snackbar.show("Nie udało się przesłać zdjęcia!", 3000, "#e74c3c");
+        snackbar.show(t("profile.avatarError"), 3000, "#e74c3c");
         return;
       }
 
@@ -105,26 +112,26 @@ export default function ProfileScreen() {
           .eq("id", user.id);
       }
 
-      snackbar.show("Avatar zaktualizowany!");
+      snackbar.show(t("profile.avatarUpdate"));
     } catch (err) {
       console.error(err);
-      snackbar.show("Błąd podczas przesyłania avatara!", 3000, "#e74c3c");
+      snackbar.show(t("profile.avatarError"), 3000, "#e74c3c");
     }
   };
 
   const saveProfile = async () => {
     if (!profile) {
-      snackbar.show("Brak danych profilu!", 3000, "#e74c3c");
+      snackbar.show(t("profile.noProfile"), 3000, "#e74c3c");
       return;
     }
 
     if (!validateRequired(name)) {
-      snackbar.show("Imię i nazwisko nie może być puste!", 3000, "#e74c3c");
+      snackbar.show(t("profile.invalidName"), 3000, "#e74c3c");
       return;
     }
 
     if (phone && !validatePhone(phone)) {
-      snackbar.show("Numer telefonu jest niepoprawny!", 3000, "#e74c3c");
+      snackbar.show(t("profile.invalidPhone"), 3000, "#e74c3c");
       return;
     }
 
@@ -141,14 +148,19 @@ export default function ProfileScreen() {
 
     if (error) {
       console.error(error);
-      snackbar.show("Nie udało się zapisać zmian!", 3000, "#e74c3c");
+      snackbar.show(t("profile.saveError"), 3000, "#e74c3c");
     } else {
-      snackbar.show("Profil zapisany!");
+      snackbar.show(t("profile.updated"));
       fetchProfile();
     }
   };
 
-  if (loading) return <LoadingView message="Wczytywanie profilu..." />;
+  if (loading)
+    return (
+      <LoadingView
+        message={t("profile.loading", { defaultValue: "Loading profile..." })}
+      />
+    );
 
   return (
     <ScrollView
@@ -159,7 +171,7 @@ export default function ProfileScreen() {
         variant="headlineSmall"
         style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
       >
-        Profil użytkownika
+        {t("profile.title")}
       </Text>
 
       <Card style={{ alignItems: "center", padding: 20, marginBottom: 16 }}>
@@ -174,36 +186,33 @@ export default function ProfileScreen() {
             }}
           />
         ) : (
-          <Text>Brak zdjęcia</Text>
+          <Text>{t("home.noImage")}</Text>
         )}
         <Button mode="outlined" onPress={pickAvatar}>
-          Zmień avatar
+          {t("profile.changeAvatar", { defaultValue: "Change avatar" })}
         </Button>
       </Card>
 
       <TextInput
-        label="Imię i nazwisko"
+        label={t("profile.name")}
         value={name}
         onChangeText={setName}
         style={{ marginBottom: 16 }}
       />
-
       <TextInput
-        label="Telefon"
+        label={t("profile.phone")}
         value={phone}
         onChangeText={setPhone}
         style={{ marginBottom: 16 }}
       />
-
       <TextInput
-        label="Adres"
+        label={t("profile.address")}
         value={address}
         onChangeText={setAddress}
         style={{ marginBottom: 16 }}
       />
-
       <TextInput
-        label="Bio"
+        label={t("profile.bio")}
         value={bio}
         onChangeText={setBio}
         multiline
@@ -211,26 +220,43 @@ export default function ProfileScreen() {
         style={{ marginBottom: 16 }}
       />
 
+      <Button onPress={() => i18n.changeLanguage("en")}>English</Button>
+      <Button onPress={() => i18n.changeLanguage("pl")}>Polski</Button>
+
       <Button mode="contained" onPress={saveProfile}>
-        Zapisz zmiany
+        {t("profile.save")}
       </Button>
 
       <Card style={{ marginTop: 20, padding: 16 }}>
-        <Text variant="titleMedium">Podsumowanie profilu:</Text>
-        <Text>
-          Ostatnia aktualizacja: {formatDate(profile?.updated_at || new Date())}
+        <Text variant="titleMedium">
+          {t("profile.summary", { defaultValue: "Profile summary:" })}
         </Text>
-        <Text>Imię i nazwisko: {name}</Text>
-        <Text>Telefon: {phone || "Brak numeru"}</Text>
-        <Text>Adres: {address || "Brak adresu"}</Text>
-        <Text>Bio: {bio || "Brak opisu"}</Text>
+        <Text>
+          {t("profile.lastUpdate")}:{" "}
+          {formatDate(profile?.updated_at || new Date())}
+        </Text>
+        <Text>
+          {t("profile.name")}: {name}
+        </Text>
+        <Text>
+          {t("profile.phone")}:{" "}
+          {phone || t("profile.noPhone", { defaultValue: "No phone number" })}
+        </Text>
+        <Text>
+          {t("profile.address")}:{" "}
+          {address || t("profile.noAddress", { defaultValue: "No address" })}
+        </Text>
+        <Text>
+          {t("profile.bio")}:{" "}
+          {bio || t("profile.noBio", { defaultValue: "No bio" })}
+        </Text>
       </Card>
 
       <Button
         mode="outlined"
         onPress={async () => {
           await supabase.auth.signOut();
-          snackbar.show("Wylogowano!");
+          snackbar.show(t("profile.logoutSuccess"));
           setProfile(null);
           setName("");
           setPhone("");
@@ -240,7 +266,7 @@ export default function ProfileScreen() {
         }}
         style={{ marginTop: 20 }}
       >
-        Wyloguj się
+        {t("profile.logout")}
       </Button>
     </ScrollView>
   );

@@ -1,3 +1,5 @@
+import "./i18n";
+
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -5,6 +7,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Provider as PaperProvider, Icon } from "react-native-paper";
 import { useAuthStore } from "./store/useAuthStore";
 import { SnackbarProvider } from "./providers/SnackbarProvider";
+import { useTranslation } from "react-i18next";
 
 import LoginScreen from "./features/auth/LoginScreen";
 import RegisterScreen from "./features/auth/RegisterScreen";
@@ -21,6 +24,8 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function AppTabs() {
+  const { t } = useTranslation();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -33,7 +38,7 @@ function AppTabs() {
         name="Home"
         component={HomeScreen}
         options={{
-          title: "Sklep",
+          title: t("home.title"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="store-outline" color={color} size={size} />
           ),
@@ -43,7 +48,7 @@ function AppTabs() {
         name="Cart"
         component={CartScreen}
         options={{
-          title: "Koszyk",
+          title: t("cart.title"),
           tabBarIcon: () => <CartIconWithBadge />,
         }}
       />
@@ -51,7 +56,7 @@ function AppTabs() {
         name="Orders"
         component={OrdersScreen}
         options={{
-          title: "Zamówienia",
+          title: t("orders.title"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="clipboard-list-outline" color={color} size={size} />
           ),
@@ -61,7 +66,7 @@ function AppTabs() {
         name="Favorites"
         component={FavoritesScreen}
         options={{
-          title: "Ulubione",
+          title: t("favorites.title"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="heart-outline" color={color} size={size} />
           ),
@@ -71,7 +76,7 @@ function AppTabs() {
         name="Profile"
         component={ProfileScreen}
         options={{
-          title: "Profil",
+          title: t("profile.title"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="account-circle-outline" color={color} size={size} />
           ),
@@ -114,10 +119,7 @@ export default function App() {
                 <Stack.Screen
                   name="ProductDetails"
                   component={ProductDetailScreen}
-                  options={{
-                    headerShown: true,
-                    title: "Szczegóły produktu",
-                  }}
+                  options={{ headerShown: true }}
                 />
               </>
             ) : (
