@@ -1,35 +1,24 @@
 import React, { useState } from "react";
 import { View } from "react-native";
-import {
-  Text,
-  TextInput,
-  Button,
-  Snackbar,
-  ActivityIndicator,
-} from "react-native-paper";
+import { Text, TextInput, Button } from "react-native-paper";
 import { supabase, validateRequired, validateEmail } from "../../lib";
 import { LoadingView } from "../../components";
+import { useSnackbar } from "../../hooks/useSnackbar";
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarText, setSnackbarText] = useState("");
-
-  const showSnackbar = (msg: string) => {
-    setSnackbarText(msg);
-    setSnackbarVisible(true);
-  };
+  const snackbar = useSnackbar();
 
   const handleLogin = async () => {
     if (!validateRequired(email) || !validateRequired(password)) {
-      showSnackbar("Podaj adres e-mail i hasło!");
+      snackbar.show("Podaj adres e-mail i hasło!", 3000, "#e74c3c");
       return;
     }
 
     if (!validateEmail(email)) {
-      showSnackbar("Niepoprawny adres e-mail!");
+      snackbar.show("Niepoprawny adres e-mail!", 3000, "#e74c3c");
       return;
     }
 
@@ -41,9 +30,9 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(false);
 
     if (error) {
-      showSnackbar("Niepoprawne dane logowania!");
+      snackbar.show("Niepoprawne dane logowania!", 3000, "#e74c3c");
     } else {
-      showSnackbar("Zalogowano pomyślnie!");
+      snackbar.show("Zalogowano pomyślnie!");
     }
   };
 
@@ -84,15 +73,6 @@ export default function LoginScreen({ navigation }: any) {
       <Button onPress={() => navigation.navigate("Register")}>
         Nie masz konta? Zarejestruj się
       </Button>
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
-        style={{ backgroundColor: "#4caf50" }}
-      >
-        {snackbarText}
-      </Snackbar>
     </View>
   );
 }

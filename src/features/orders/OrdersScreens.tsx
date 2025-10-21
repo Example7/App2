@@ -95,10 +95,8 @@ export default function OrdersScreen() {
     }
   };
 
-  // ⏳ Loader
   if (loading) return <LoadingView message="Wczytywanie zamówień..." />;
 
-  // 🧾 Główny widok
   return (
     <ScrollView
       style={{ flex: 1, padding: 16, backgroundColor: "#f5f6fa" }}
@@ -106,7 +104,7 @@ export default function OrdersScreen() {
     >
       <Text
         variant="headlineSmall"
-        style={{ fontWeight: "700", marginBottom: 6 }}
+        style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
       >
         Moje zamówienia
       </Text>
@@ -114,7 +112,6 @@ export default function OrdersScreen() {
         Przeglądaj historię swoich zamówień
       </Text>
 
-      {/* 🔍 Filtry i sortowanie */}
       <View
         style={{
           flexDirection: "row",
@@ -200,7 +197,6 @@ export default function OrdersScreen() {
         </View>
       </View>
 
-      {/* 🧾 Lista zamówień */}
       {orders.length === 0 ? (
         <EmptyState
           icon="clipboard-list-outline"

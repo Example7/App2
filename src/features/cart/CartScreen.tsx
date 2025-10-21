@@ -1,36 +1,35 @@
-import React, { useState } from "react";
+import React from "react";
 import { ScrollView, View } from "react-native";
-import { Text, Button, Card, Divider, Snackbar } from "react-native-paper";
+import { Text, Button, Card, Divider } from "react-native-paper";
 import { useCartStore } from "../../store/useCartStore";
 import { supabase } from "../../lib/supabase";
 import { formatPrice } from "../../lib/helpers";
 import { EmptyState } from "../../components";
+import { useSnackbar } from "../../hooks/useSnackbar";
 
 export default function CartScreen() {
   const { items, removeFromCart, clearCart, getTotal, getCount } =
     useCartStore();
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarText, setSnackbarText] = useState("");
-
-  const showSnackbar = (message: string) => {
-    setSnackbarText(message);
-    setSnackbarVisible(true);
-  };
 
   const total = getTotal();
   const count = getCount();
+  const snackbar = useSnackbar();
 
   const placeOrder = async () => {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
 
     if (!user) {
-      showSnackbar("Musisz być zalogowany, aby złożyć zamówienie!");
+      snackbar.show(
+        "Musisz być zalogowany, aby złożyć zamówienie!",
+        3000,
+        "#e74c3c"
+      );
       return;
     }
 
     if (items.length === 0) {
-      showSnackbar("Koszyk jest pusty!");
+      snackbar.show("Koszyk jest pusty!", 3000, "#e74c3c");
       return;
     }
 
@@ -48,7 +47,7 @@ export default function CartScreen() {
 
     if (orderError) {
       console.error(orderError);
-      showSnackbar("Nie udało się utworzyć zamówienia!");
+      snackbar.show("Nie udało się utworzyć zamówienia!", 3000, "#e74c3c");
       return;
     }
 
@@ -65,12 +64,16 @@ export default function CartScreen() {
 
     if (itemsError) {
       console.error(itemsError);
-      showSnackbar("Nie udało się zapisać produktów zamówienia!");
+      snackbar.show(
+        "Nie udało się zapisać produktów zamówienia!",
+        3000,
+        "#e74c3c"
+      );
       return;
     }
 
     clearCart();
-    showSnackbar("Zamówienie zostało pomyślnie złożone!");
+    snackbar.show("Zamówienie zostało pomyślnie złożone!");
   };
 
   return (
@@ -81,7 +84,7 @@ export default function CartScreen() {
         <ScrollView style={{ flex: 1, padding: 16 }}>
           <Text
             variant="headlineSmall"
-            style={{ fontWeight: "700", marginBottom: 14 }}
+            style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
           >
             Twój koszyk ({count})
           </Text>
@@ -130,15 +133,6 @@ export default function CartScreen() {
           </Button>
         </ScrollView>
       )}
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
-        style={{ backgroundColor: "#4caf50" }}
-      >
-        {snackbarText}
-      </Snackbar>
     </View>
   );
 }

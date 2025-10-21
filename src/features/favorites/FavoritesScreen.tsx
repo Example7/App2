@@ -52,7 +52,7 @@ export default function FavoritesScreen() {
     <ScrollView style={{ flex: 1, padding: 16, backgroundColor: "#f5f6fa" }}>
       <Text
         variant="headlineSmall"
-        style={{ fontWeight: "700", marginBottom: 14 }}
+        style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
       >
         Twoje ulubione produkty
       </Text>

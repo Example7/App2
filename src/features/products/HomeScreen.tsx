@@ -49,7 +49,7 @@ export default function HomeScreen() {
     <View style={{ flex: 1, padding: 16, backgroundColor: "#f5f6fa" }}>
       <Text
         variant="headlineSmall"
-        style={{ fontWeight: "700", marginBottom: 14 }}
+        style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
       >
         Dostępne produkty
       </Text>

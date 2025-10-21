@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Provider as PaperProvider, Icon } from "react-native-paper";
 import { useAuthStore } from "./store/useAuthStore";
+import { SnackbarProvider } from "./providers/SnackbarProvider";
 
 import LoginScreen from "./features/auth/LoginScreen";
 import RegisterScreen from "./features/auth/RegisterScreen";
@@ -100,40 +101,42 @@ export default function App() {
 
   return (
     <PaperProvider>
-      <NavigationContainer>
-        <Stack.Navigator>
-          {session ? (
-            <>
-              <Stack.Screen
-                name="AppTabs"
-                component={AppTabs}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="ProductDetails"
-                component={ProductDetailScreen}
-                options={{
-                  headerShown: true,
-                  title: "Szczegóły produktu",
-                }}
-              />
-            </>
-          ) : (
-            <>
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="Register"
-                component={RegisterScreen}
-                options={{ headerShown: false }}
-              />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
+      <SnackbarProvider>
+        <NavigationContainer>
+          <Stack.Navigator>
+            {session ? (
+              <>
+                <Stack.Screen
+                  name="AppTabs"
+                  component={AppTabs}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="ProductDetails"
+                  component={ProductDetailScreen}
+                  options={{
+                    headerShown: true,
+                    title: "Szczegóły produktu",
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Stack.Screen
+                  name="Login"
+                  component={LoginScreen}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="Register"
+                  component={RegisterScreen}
+                  options={{ headerShown: false }}
+                />
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SnackbarProvider>
     </PaperProvider>
   );
 }

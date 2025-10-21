@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, Image, ScrollView } from "react-native";
-import {
-  Text,
-  Button,
-  TextInput,
-  ActivityIndicator,
-  Card,
-  Snackbar,
-} from "react-native-paper";
+import { Image, ScrollView } from "react-native";
+import { Text, Button, TextInput, Card } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import {
   supabase,
@@ -17,6 +10,7 @@ import {
 } from "../../lib";
 import { Profile } from "../../types";
 import { LoadingView } from "../../components";
+import { useSnackbar } from "../../hooks/useSnackbar";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -27,13 +21,7 @@ export default function ProfileScreen() {
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarText, setSnackbarText] = useState("");
-
-  const showSnackbar = (message: string) => {
-    setSnackbarText(message);
-    setSnackbarVisible(true);
-  };
+  const snackbar = useSnackbar();
 
   useEffect(() => {
     fetchProfile();
@@ -44,7 +32,7 @@ export default function ProfileScreen() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
     if (!user) {
-      showSnackbar("Musisz być zalogowany!");
+      snackbar.show("Musisz być zalogowany!", 3000, "#e74c3c");
       setLoading(false);
       return;
     }
@@ -57,7 +45,7 @@ export default function ProfileScreen() {
 
     if (error) {
       console.error(error);
-      showSnackbar("Nie udało się pobrać profilu!");
+      snackbar.show("Nie udało się pobrać profilu!", 3000, "#e74c3c");
     } else if (data) {
       setProfile(data);
       setName(data.full_name || "");
@@ -101,7 +89,7 @@ export default function ProfileScreen() {
 
       if (uploadError) {
         console.error(uploadError);
-        showSnackbar("Nie udało się przesłać zdjęcia!");
+        snackbar.show("Nie udało się przesłać zdjęcia!", 3000, "#e74c3c");
         return;
       }
 
@@ -117,26 +105,26 @@ export default function ProfileScreen() {
           .eq("id", user.id);
       }
 
-      showSnackbar("Avatar zaktualizowany!");
+      snackbar.show("Avatar zaktualizowany!");
     } catch (err) {
       console.error(err);
-      showSnackbar("Błąd podczas przesyłania avatara!");
+      snackbar.show("Błąd podczas przesyłania avatara!", 3000, "#e74c3c");
     }
   };
 
   const saveProfile = async () => {
     if (!profile) {
-      showSnackbar("Brak danych profilu!");
+      snackbar.show("Brak danych profilu!", 3000, "#e74c3c");
       return;
     }
 
     if (!validateRequired(name)) {
-      showSnackbar("Imię i nazwisko nie może być puste!");
+      snackbar.show("Imię i nazwisko nie może być puste!", 3000, "#e74c3c");
       return;
     }
 
     if (phone && !validatePhone(phone)) {
-      showSnackbar("Numer telefonu jest niepoprawny!");
+      snackbar.show("Numer telefonu jest niepoprawny!", 3000, "#e74c3c");
       return;
     }
 
@@ -153,9 +141,9 @@ export default function ProfileScreen() {
 
     if (error) {
       console.error(error);
-      showSnackbar("Nie udało się zapisać zmian!");
+      snackbar.show("Nie udało się zapisać zmian!", 3000, "#e74c3c");
     } else {
-      showSnackbar("Profil zapisany!");
+      snackbar.show("Profil zapisany!");
       fetchProfile();
     }
   };
@@ -167,7 +155,10 @@ export default function ProfileScreen() {
       style={{ flex: 1, padding: 16, backgroundColor: "#fff" }}
       contentContainerStyle={{ paddingBottom: 60 }}
     >
-      <Text variant="headlineSmall" style={{ marginBottom: 16 }}>
+      <Text
+        variant="headlineSmall"
+        style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
+      >
         Profil użytkownika
       </Text>
 
@@ -239,7 +230,7 @@ export default function ProfileScreen() {
         mode="outlined"
         onPress={async () => {
           await supabase.auth.signOut();
-          showSnackbar("Wylogowano!");
+          snackbar.show("Wylogowano!");
           setProfile(null);
           setName("");
           setPhone("");
@@ -251,15 +242,6 @@ export default function ProfileScreen() {
       >
         Wyloguj się
       </Button>
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
-        style={{ backgroundColor: "#4caf50" }}
-      >
-        {snackbarText}
-      </Snackbar>
     </ScrollView>
   );
 }

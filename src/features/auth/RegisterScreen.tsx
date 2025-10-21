@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Text, TextInput, Button, Snackbar } from "react-native-paper";
+import { Text, TextInput, Button } from "react-native-paper";
 import {
   supabase,
   validateEmail,
@@ -8,38 +8,37 @@ import {
   validateConfirmPassword,
 } from "../../lib";
 import { LoadingView } from "../../components";
+import { useSnackbar } from "../../hooks/useSnackbar";
 
 export default function RegisterScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarText, setSnackbarText] = useState("");
-
-  const showSnackbar = (msg: string) => {
-    setSnackbarText(msg);
-    setSnackbarVisible(true);
-  };
+  const snackbar = useSnackbar();
 
   const handleRegister = async () => {
     if (!email || !password) {
-      showSnackbar("Podaj adres email i hasło!");
+      snackbar.show("Podaj adres email i hasło!", 3000, "#e74c3c");
       return;
     }
 
     if (!validateEmail(email)) {
-      showSnackbar("Niepoprawny adres e-mail!");
+      snackbar.show("Niepoprawny adres e-mail!", 3000, "#e74c3c");
       return;
     }
 
     if (!validatePassword(password)) {
-      showSnackbar("Hasło musi mieć min. 6 znaków, dużą literę i cyfrę!");
+      snackbar.show(
+        "Hasło musi mieć min. 6 znaków, dużą literę i cyfrę!",
+        3000,
+        "#e74c3c"
+      );
       return;
     }
 
     if (!validateConfirmPassword(password, confirmPassword)) {
-      showSnackbar("Hasła muszą być identyczne!");
+      snackbar.show("Hasła muszą być identyczne!", 3000, "#e74c3c");
       return;
     }
 
@@ -51,7 +50,7 @@ export default function RegisterScreen({ navigation }: any) {
     setLoading(false);
 
     if (error) {
-      showSnackbar(error.message);
+      snackbar.show(error.message, 3000, "#e74c3c");
     } else if (data?.user) {
       await supabase.from("profiles").insert([
         {
@@ -62,7 +61,7 @@ export default function RegisterScreen({ navigation }: any) {
         },
       ]);
 
-      showSnackbar("Rejestracja zakończona! Możesz się zalogować.");
+      snackbar.show("Rejestracja zakończona! Możesz się zalogować.");
       setTimeout(() => navigation.goBack(), 1500);
     }
   };
@@ -112,15 +111,6 @@ export default function RegisterScreen({ navigation }: any) {
       <Button onPress={() => navigation.goBack()}>
         Masz już konto? Zaloguj się
       </Button>
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
-        style={{ backgroundColor: "#4caf50" }}
-      >
-        {snackbarText}
-      </Snackbar>
     </View>
   );
 }
