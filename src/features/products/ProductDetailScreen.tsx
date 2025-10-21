@@ -1,8 +1,8 @@
 import React from "react";
 import { View, ScrollView, Image } from "react-native";
 import { Text, Button, IconButton } from "react-native-paper";
-import { useCartStore } from "../store/useCartStore";
-import { useFavoritesStore } from "../store/useFavoritesStore";
+import { useCartStore } from "../../store/useCartStore";
+import { useFavoritesStore } from "../../store/useFavoritesStore";
 
 export default function ProductDetailsScreen({ route, navigation }: any) {
   const { product } = route.params;

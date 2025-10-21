@@ -1,31 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { View, ScrollView, TouchableOpacity } from "react-native";
-import { Text, Card, ActivityIndicator, Divider } from "react-native-paper";
-import { supabase } from "../lib/supabase";
-
-type Order = {
-  id: string;
-  created_at: string;
-  total: number;
-  status: string;
-};
-
-type OrderItem = {
-  id: number;
-  order_id: string;
-  product_id: number;
-  quantity: number;
-  price: number;
-  products: {
-    name: string;
-  };
-};
+import { Text, Card, Divider } from "react-native-paper";
+import { supabase, formatDate, formatPrice, shortId } from "../../lib";
+import { Order, OrderItem } from "../../types";
+import { LoadingView, EmptyState } from "../../components";
 
 export default function OrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [filter, setFilter] = useState<string>("Wszystkie");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
@@ -39,9 +22,7 @@ export default function OrdersScreen() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
-        () => {
-          fetchOrders();
-        }
+        () => fetchOrders()
       )
       .subscribe();
 
@@ -114,22 +95,10 @@ export default function OrdersScreen() {
     }
   };
 
-  if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#f5f6fa",
-        }}
-      >
-        <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>Wczytywanie zamówień...</Text>
-      </View>
-    );
-  }
+  // ⏳ Loader
+  if (loading) return <LoadingView message="Wczytywanie zamówień..." />;
 
+  // 🧾 Główny widok
   return (
     <ScrollView
       style={{ flex: 1, padding: 16, backgroundColor: "#f5f6fa" }}
@@ -137,10 +106,7 @@ export default function OrdersScreen() {
     >
       <Text
         variant="headlineSmall"
-        style={{
-          fontWeight: "700",
-          marginBottom: 6,
-        }}
+        style={{ fontWeight: "700", marginBottom: 6 }}
       >
         Moje zamówienia
       </Text>
@@ -148,6 +114,7 @@ export default function OrdersScreen() {
         Przeglądaj historię swoich zamówień
       </Text>
 
+      {/* 🔍 Filtry i sortowanie */}
       <View
         style={{
           flexDirection: "row",
@@ -162,13 +129,7 @@ export default function OrdersScreen() {
           >
             Filtr statusu
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 6,
-            }}
-          >
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
             {["Wszystkie", "W realizacji", "Zakończone", "Anulowane"].map(
               (status) => (
                 <TouchableOpacity
@@ -206,12 +167,7 @@ export default function OrdersScreen() {
           >
             Sortowanie
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 6,
-            }}
-          >
+          <View style={{ flexDirection: "row", gap: 6 }}>
             {[
               { label: "Najnowsze", value: "desc" },
               { label: "Najstarsze", value: "asc" },
@@ -244,17 +200,12 @@ export default function OrdersScreen() {
         </View>
       </View>
 
+      {/* 🧾 Lista zamówień */}
       {orders.length === 0 ? (
-        <View
-          style={{
-            alignItems: "center",
-            marginTop: 40,
-          }}
-        >
-          <Text style={{ opacity: 0.6 }}>
-            Nie masz jeszcze żadnych zamówień
-          </Text>
-        </View>
+        <EmptyState
+          icon="clipboard-list-outline"
+          message="Nie masz jeszcze żadnych zamówień"
+        />
       ) : (
         orders.map((order) => {
           const items = orderItems.filter((i) => i.order_id === order.id);
@@ -271,8 +222,8 @@ export default function OrdersScreen() {
               }}
             >
               <Card.Title
-                title={`Zamówienie #${order.id.slice(0, 6).toUpperCase()}`}
-                subtitle={new Date(order.created_at).toLocaleString()}
+                title={`Zamówienie #${shortId(order.id)}`}
+                subtitle={formatDate(order.created_at)}
                 right={() => (
                   <Text
                     style={{
@@ -292,7 +243,7 @@ export default function OrdersScreen() {
                   items.map((item) => (
                     <Text key={item.id} style={{ marginVertical: 2 }}>
                       • {item.products?.name || "Produkt"} x {item.quantity} —{" "}
-                      {(item.price * item.quantity).toFixed(2)} zł
+                      {formatPrice(item.price * item.quantity)}
                     </Text>
                   ))
                 ) : (
@@ -307,7 +258,7 @@ export default function OrdersScreen() {
                     fontSize: 16,
                   }}
                 >
-                  Suma: {order.total.toFixed(2)} zł
+                  Suma: {formatPrice(order.total)}
                 </Text>
               </Card.Content>
             </Card>

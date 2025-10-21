@@ -6,13 +6,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Text } from "react-native-paper";
-import { supabase } from "../lib/supabase";
-import { useCartStore } from "../store/useCartStore";
-import { useFavoritesStore } from "../store/useFavoritesStore";
-import ProductCard from "../components/ProductCard";
+import { supabase } from "../../lib";
+import { useCartStore } from "../../store";
+import { useFavoritesStore } from "../../store";
+import ProductCard from "./components/ProductCard";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types/navigation";
+import { RootStackParamList } from "../../types";
+import { LoadingView } from "../../components";
 
 export default function HomeScreen() {
   const [products, setProducts] = useState<any[]>([]);
@@ -30,18 +31,14 @@ export default function HomeScreen() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    const { data } = await supabase.from("products").select("*");
+    const { data, error } = await supabase.from("products").select("*");
+    if (error) console.error("Błąd pobierania produktów:", error);
     setProducts(data || []);
     setLoading(false);
   };
 
   if (loading)
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text>Wczytywanie produktów...</Text>
-      </View>
-    );
+    return <LoadingView message="Wczytywanie ulubionych produktów..." />;
 
   return (
     <View style={{ flex: 1, padding: 16, backgroundColor: "#f5f6fa" }}>
@@ -59,9 +56,7 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
-              navigation
-                .getParent()
-                ?.navigate("ProductDetails", { product: item })
+              navigation.navigate("ProductDetails", { product: item })
             }
           >
             <ProductCard

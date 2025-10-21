@@ -11,15 +11,15 @@ import {
 import { View } from "react-native";
 import { supabase } from "./lib/supabase";
 
-import LoginScreen from "./screens/auth/LoginScreen";
-import RegisterScreen from "./screens/auth/registerScreen";
-import HomeScreen from "./screens/HomeScreen";
-import CartScreen from "./screens/CartScreen";
-import OrdersScreen from "./screens/OrdersScreens";
-import ProfileScreen from "./screens/ProfileScreen";
+import LoginScreen from "./features/auth/LoginScreen";
+import RegisterScreen from "./features/auth/registerScreen";
+import HomeScreen from "./features/products/HomeScreen";
+import CartScreen from "./features/cart/CartScreen";
+import OrdersScreen from "./features/orders/OrdersScreens";
+import ProfileScreen from "./features/profile/ProfileScreen";
 import CartIconWithBadge from "./components/CartIconWithBadge";
-import FavoritesScreen from "./screens/FavoritesScreen";
-import ProductDetailScreen from "./screens/ProductDetailScreen";
+import FavoritesScreen from "./features/favorites/FavoritesScreen";
+import ProductDetailScreen from "./features/products/ProductDetailScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();

@@ -7,7 +7,7 @@ import {
   Snackbar,
   ActivityIndicator,
 } from "react-native-paper";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../lib/supabase";
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");

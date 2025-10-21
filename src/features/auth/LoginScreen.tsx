@@ -7,9 +7,9 @@ import {
   Snackbar,
   ActivityIndicator,
 } from "react-native-paper";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../lib";
 
-export default function RegisterScreen({ navigation }: any) {
+export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,33 +21,23 @@ export default function RegisterScreen({ navigation }: any) {
     setSnackbarVisible(true);
   };
 
-  const handleRegister = async () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       showSnackbar("Podaj adres email i hasło!");
       return;
     }
 
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     setLoading(false);
 
     if (error) {
-      showSnackbar(error.message);
-    } else if (data?.user) {
-      await supabase.from("profiles").insert([
-        {
-          id: data.user.id,
-          full_name: "",
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
-      showSnackbar("Rejestracja zakończona! Możesz się zalogować.");
-      setTimeout(() => navigation.goBack(), 1500);
+      showSnackbar("Niepoprawne dane logowania!");
+    } else {
+      showSnackbar("Zalogowano pomyślnie!");
     }
   };
 
@@ -55,7 +45,7 @@ export default function RegisterScreen({ navigation }: any) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>Rejestrowanie...</Text>
+        <Text style={{ marginTop: 10 }}>Logowanie...</Text>
       </View>
     );
   }
@@ -63,7 +53,7 @@ export default function RegisterScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, justifyContent: "center", padding: 16 }}>
       <Text variant="headlineSmall" style={{ marginBottom: 20 }}>
-        Rejestracja
+        Logowanie
       </Text>
 
       <TextInput
@@ -85,15 +75,15 @@ export default function RegisterScreen({ navigation }: any) {
 
       <Button
         mode="contained"
-        onPress={handleRegister}
+        onPress={handleLogin}
         loading={loading}
         disabled={loading}
       >
-        Zarejestruj się
+        Zaloguj się
       </Button>
 
-      <Button onPress={() => navigation.goBack()}>
-        Masz już konto? Zaloguj się
+      <Button onPress={() => navigation.navigate("Register")}>
+        Nie masz konta? Zarejestruj się
       </Button>
 
       <Snackbar

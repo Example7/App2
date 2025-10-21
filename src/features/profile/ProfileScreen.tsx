@@ -9,16 +9,9 @@ import {
   Snackbar,
 } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../lib/supabase";
-
-type Profile = {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  phone?: string | null;
-  address?: string | null;
-  bio?: string | null;
-};
+import { supabase, formatDate } from "../../lib";
+import { Profile } from "../../types";
+import { LoadingView } from "../../components";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -152,14 +145,7 @@ export default function ProfileScreen() {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text>Wczytywanie profilu...</Text>
-      </View>
-    );
-  }
+  if (loading) return <LoadingView message="Wczytywanie profilu..." />;
 
   return (
     <ScrollView
@@ -225,6 +211,9 @@ export default function ProfileScreen() {
 
       <Card style={{ marginTop: 20, padding: 16 }}>
         <Text variant="titleMedium">Podsumowanie profilu:</Text>
+        <Text>
+          Ostatnia aktualizacja: {formatDate(profile?.updated_at || new Date())}
+        </Text>
         <Text>Imię i nazwisko: {name}</Text>
         <Text>Telefon: {phone || "Brak numeru"}</Text>
         <Text>Adres: {address || "Brak adresu"}</Text>

@@ -1,8 +1,8 @@
 import React from "react";
 import { View, FlatList, Image } from "react-native";
 import { Text, Button, Card, Divider } from "react-native-paper";
-import { useCartStore } from "../store/useCartStore";
-import { supabase } from "../lib/supabase";
+import { useCartStore } from "../../store";
+import { supabase } from "../../lib";
 
 export default function CartScreen() {
   const { items, removeFromCart, clearCart, totalPrice } = useCartStore();

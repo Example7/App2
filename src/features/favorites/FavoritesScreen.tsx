@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, ScrollView, ActivityIndicator } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Text } from "react-native-paper";
-import { supabase } from "../lib/supabase";
-import { useFavoritesStore } from "../store/useFavoritesStore";
-import { useCartStore } from "../store/useCartStore";
-import ProductCard from "../components/ProductCard";
+import { supabase } from "../../lib";
+import { useFavoritesStore } from "../../store/useFavoritesStore";
+import { useCartStore } from "../../store/useCartStore";
+import { LoadingView, EmptyState } from "../../components";
+import ProductCard from "../products/components/ProductCard";
 
 export default function FavoritesScreen() {
   const { favorites, fetchFavorites, toggleFavorite } = useFavoritesStore();
@@ -29,24 +30,22 @@ export default function FavoritesScreen() {
     }
 
     const ids = favorites.map((f) => f.product_id);
-    const { data } = await supabase.from("products").select("*").in("id", ids);
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .in("id", ids);
+
+    if (error) console.error("Błąd pobierania ulubionych:", error);
     setProducts(data || []);
     setLoading(false);
   };
 
   if (loading)
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text>Wczytywanie ulubionych...</Text>
-      </View>
-    );
+    return <LoadingView message="Wczytywanie ulubionych produktów..." />;
 
   if (products.length === 0)
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Brak ulubionych produktów</Text>
-      </View>
+      <EmptyState icon="heart-outline" message="Brak ulubionych produktów" />
     );
 
   return (
@@ -58,15 +57,17 @@ export default function FavoritesScreen() {
         Twoje ulubione produkty
       </Text>
 
-      {products.map((item) => (
-        <ProductCard
-          key={item.id}
-          product={item}
-          isFavorite={true}
-          onToggleFavorite={() => toggleFavorite(item.id)}
-          onAddToCart={() => addToCart(item)}
-        />
-      ))}
+      <View style={{ gap: 12 }}>
+        {products.map((item) => (
+          <ProductCard
+            key={item.id}
+            product={item}
+            isFavorite
+            onToggleFavorite={() => toggleFavorite(item.id)}
+            onAddToCart={() => addToCart(item)}
+          />
+        ))}
+      </View>
     </ScrollView>
   );
 }

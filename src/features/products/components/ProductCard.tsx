@@ -1,15 +1,10 @@
 import React from "react";
 import { View } from "react-native";
 import { Card, Text, Button, IconButton } from "react-native-paper";
+import { Product } from "../../../types/models";
 
 interface ProductCardProps {
-  product: {
-    id: number;
-    name: string;
-    description?: string;
-    price: number;
-    image_url?: string | null;
-  };
+  product: Product;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   onAddToCart?: () => void;

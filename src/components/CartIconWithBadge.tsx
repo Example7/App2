@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 import { Badge, Icon } from "react-native-paper";
-import { useCartStore } from "../store/useCartStore";
+import { useCartStore } from "../store";
 
 export default function CartIconWithBadge() {
   const items = useCartStore((s) => s.items);
