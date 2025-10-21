@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import { View } from "react-native";
+import { Text, TextInput, Button, Snackbar } from "react-native-paper";
 import {
-  Text,
-  TextInput,
-  Button,
-  Snackbar,
-  ActivityIndicator,
-} from "react-native-paper";
-import { supabase } from "../../lib";
+  supabase,
+  validateEmail,
+  validatePassword,
+  validateConfirmPassword,
+} from "../../lib";
+import { LoadingView } from "../../components";
 
 export default function RegisterScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarText, setSnackbarText] = useState("");
@@ -24,6 +25,21 @@ export default function RegisterScreen({ navigation }: any) {
   const handleRegister = async () => {
     if (!email || !password) {
       showSnackbar("Podaj adres email i hasło!");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      showSnackbar("Niepoprawny adres e-mail!");
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      showSnackbar("Hasło musi mieć min. 6 znaków, dużą literę i cyfrę!");
+      return;
+    }
+
+    if (!validateConfirmPassword(password, confirmPassword)) {
+      showSnackbar("Hasła muszą być identyczne!");
       return;
     }
 
@@ -51,14 +67,7 @@ export default function RegisterScreen({ navigation }: any) {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>Rejestrowanie...</Text>
-      </View>
-    );
-  }
+  if (loading) return <LoadingView message="Wczytywanie..." />;
 
   return (
     <View style={{ flex: 1, justifyContent: "center", padding: 16 }}>
@@ -79,6 +88,14 @@ export default function RegisterScreen({ navigation }: any) {
         mode="outlined"
         value={password}
         onChangeText={setPassword}
+        secureTextEntry
+        style={{ marginBottom: 20 }}
+      />
+      <TextInput
+        label="Potwierdź hasło"
+        mode="outlined"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
         secureTextEntry
         style={{ marginBottom: 20 }}
       />

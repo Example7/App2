@@ -9,10 +9,11 @@ import {
   Icon,
 } from "react-native-paper";
 import { View } from "react-native";
-import { supabase } from "./lib/supabase";
+import { supabase } from "./lib";
+import { LoadingView } from "./components";
 
 import LoginScreen from "./features/auth/LoginScreen";
-import RegisterScreen from "./features/auth/registerScreen";
+import RegisterScreen from "./features/auth/RegisterScreen";
 import HomeScreen from "./features/products/HomeScreen";
 import CartScreen from "./features/cart/CartScreen";
 import OrdersScreen from "./features/orders/OrdersScreens";
@@ -110,14 +111,7 @@ export default function App() {
     };
   }, []);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text>Wczytywanie...</Text>
-      </View>
-    );
-  }
+  if (loading) return <LoadingView message="Wczytywanie..." />;
 
   return (
     <PaperProvider>

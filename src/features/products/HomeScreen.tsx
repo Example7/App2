@@ -1,10 +1,5 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  FlatList,
-  ActivityIndicator,
-  TouchableOpacity,
-} from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, FlatList, RefreshControl, TouchableOpacity } from "react-native";
 import { Text } from "react-native-paper";
 import { supabase } from "../../lib";
 import { useCartStore } from "../../store";
@@ -18,27 +13,37 @@ import { LoadingView } from "../../components";
 export default function HomeScreen() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   const addToCart = useCartStore((s) => s.addToCart);
   const { toggleFavorite, isFavorite, fetchFavorites } = useFavoritesStore();
 
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  useEffect(() => {
-    fetchProducts();
-    fetchFavorites();
-  }, []);
-
   const fetchProducts = async () => {
-    setLoading(true);
     const { data, error } = await supabase.from("products").select("*");
     if (error) console.error("Błąd pobierania produktów:", error);
     setProducts(data || []);
-    setLoading(false);
   };
 
-  if (loading)
-    return <LoadingView message="Wczytywanie ulubionych produktów..." />;
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      await fetchProducts();
+      await fetchFavorites();
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchProducts();
+    setRefreshing(false);
+  }, []);
+
+  if (loading) return <LoadingView message="Wczytywanie produktów..." />;
 
   return (
     <View style={{ flex: 1, padding: 16, backgroundColor: "#f5f6fa" }}>
@@ -53,6 +58,9 @@ export default function HomeScreen() {
         data={products}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>

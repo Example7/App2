@@ -7,7 +7,8 @@ import {
   Snackbar,
   ActivityIndicator,
 } from "react-native-paper";
-import { supabase } from "../../lib";
+import { supabase, validateRequired, validateEmail } from "../../lib";
+import { LoadingView } from "../../components";
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
@@ -22,8 +23,13 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      showSnackbar("Podaj adres email i hasło!");
+    if (!validateRequired(email) || !validateRequired(password)) {
+      showSnackbar("Podaj adres e-mail i hasło!");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      showSnackbar("Niepoprawny adres e-mail!");
       return;
     }
 
@@ -41,14 +47,7 @@ export default function LoginScreen({ navigation }: any) {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>Logowanie...</Text>
-      </View>
-    );
-  }
+  if (loading) return <LoadingView message="Wczytywanie..." />;
 
   return (
     <View style={{ flex: 1, justifyContent: "center", padding: 16 }}>

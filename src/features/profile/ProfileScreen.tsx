@@ -9,7 +9,12 @@ import {
   Snackbar,
 } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
-import { supabase, formatDate } from "../../lib";
+import {
+  supabase,
+  formatDate,
+  validateRequired,
+  validatePhone,
+} from "../../lib";
 import { Profile } from "../../types";
 import { LoadingView } from "../../components";
 
@@ -122,6 +127,16 @@ export default function ProfileScreen() {
   const saveProfile = async () => {
     if (!profile) {
       showSnackbar("Brak danych profilu!");
+      return;
+    }
+
+    if (!validateRequired(name)) {
+      showSnackbar("Imię i nazwisko nie może być puste!");
+      return;
+    }
+
+    if (phone && !validatePhone(phone)) {
+      showSnackbar("Numer telefonu jest niepoprawny!");
       return;
     }
 
