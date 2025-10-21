@@ -1,19 +1,20 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { View, FlatList, RefreshControl, TouchableOpacity } from "react-native";
-import { Text } from "react-native-paper";
+import React, { useEffect, useState } from "react";
+import { View, FlatList, TouchableOpacity, TextInput } from "react-native";
+import { Text, IconButton } from "react-native-paper";
 import { supabase } from "../../lib";
-import { useCartStore } from "../../store";
-import { useFavoritesStore } from "../../store";
+import { useCartStore, useFavoritesStore } from "../../store";
 import ProductCard from "./components/ProductCard";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types";
-import { LoadingView } from "../../components";
+import { LoadingView, EmptyState } from "../../components";
+import { filterProducts } from "../../lib/helpers";
 
 export default function HomeScreen() {
   const [products, setProducts] = useState<any[]>([]);
+  const [filtered, setFiltered] = useState<any[]>([]);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   const addToCart = useCartStore((s) => s.addToCart);
   const { toggleFavorite, isFavorite, fetchFavorites } = useFavoritesStore();
@@ -21,27 +22,23 @@ export default function HomeScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+  useEffect(() => {
+    fetchProducts();
+    fetchFavorites();
+  }, []);
+
   const fetchProducts = async () => {
+    setLoading(true);
     const { data, error } = await supabase.from("products").select("*");
     if (error) console.error("Błąd pobierania produktów:", error);
     setProducts(data || []);
+    setFiltered(data || []);
+    setLoading(false);
   };
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      await fetchProducts();
-      await fetchFavorites();
-      setLoading(false);
-    };
-    load();
-  }, []);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchProducts();
-    setRefreshing(false);
-  }, []);
+    setFiltered(filterProducts(products, query));
+  }, [query, products]);
 
   if (loading) return <LoadingView message="Wczytywanie produktów..." />;
 
@@ -54,28 +51,58 @@ export default function HomeScreen() {
         Dostępne produkty
       </Text>
 
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id.toString()}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("ProductDetails", { product: item })
-            }
-          >
-            <ProductCard
-              product={item}
-              isFavorite={isFavorite(item.id)}
-              onToggleFavorite={() => toggleFavorite(item.id)}
-              onAddToCart={() => addToCart(item)}
-            />
-          </TouchableOpacity>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: "#fff",
+          borderRadius: 10,
+          paddingHorizontal: 6,
+          marginBottom: 14,
+          elevation: 1,
+        }}
+      >
+        <IconButton icon="magnify" size={22} />
+        <TextInput
+          placeholder="Szukaj produktów..."
+          value={query}
+          onChangeText={setQuery}
+          style={{
+            flex: 1,
+            fontSize: 16,
+            paddingVertical: 8,
+            color: "#222",
+          }}
+          placeholderTextColor="#888"
+        />
+        {query.length > 0 && (
+          <IconButton icon="close" size={20} onPress={() => setQuery("")} />
         )}
-      />
+      </View>
+
+      {filtered.length === 0 ? (
+        <EmptyState icon="magnify" message="Nie znaleziono produktów" />
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ProductDetails", { product: item })
+              }
+            >
+              <ProductCard
+                product={item}
+                isFavorite={isFavorite(item.id)}
+                onToggleFavorite={() => toggleFavorite(item.id)}
+                onAddToCart={() => addToCart(item)}
+              />
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 }

@@ -34,3 +34,13 @@ export const validateConfirmPassword = (
 ): boolean => {
   return password === confirmPassword;
 };
+
+export function filterProducts(products: any[], query: string) {
+  if (!query.trim()) return products;
+  const lower = query.toLowerCase();
+  return products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(lower) ||
+      p.description?.toLowerCase().includes(lower)
+  );
+}
