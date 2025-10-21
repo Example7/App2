@@ -1,40 +1,54 @@
-import React from "react";
-import { View, FlatList, Image } from "react-native";
-import { Text, Button, Card, Divider } from "react-native-paper";
-import { useCartStore } from "../../store";
-import { supabase } from "../../lib";
+import React, { useState } from "react";
+import { ScrollView, View } from "react-native";
+import { Text, Button, Card, Divider, Snackbar } from "react-native-paper";
+import { useCartStore } from "../../store/useCartStore";
+import { supabase } from "../../lib/supabase";
+import { formatPrice } from "../../lib/helpers";
+import { EmptyState } from "../../components";
 
 export default function CartScreen() {
-  const { items, removeFromCart, clearCart, totalPrice } = useCartStore();
+  const { items, removeFromCart, clearCart, getTotal, getCount } =
+    useCartStore();
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarText, setSnackbarText] = useState("");
 
-  const handleOrder = async () => {
-    if (items.length === 0) {
-      alert("Koszyk jest pusty!");
-      return;
-    }
+  const showSnackbar = (message: string) => {
+    setSnackbarText(message);
+    setSnackbarVisible(true);
+  };
 
+  const total = getTotal();
+  const count = getCount();
+
+  const placeOrder = async () => {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
 
     if (!user) {
-      alert("Musisz być zalogowany, aby złożyć zamówienie!");
+      showSnackbar("Musisz być zalogowany, aby złożyć zamówienie!");
       return;
     }
 
-    const total = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    if (items.length === 0) {
+      showSnackbar("Koszyk jest pusty!");
+      return;
+    }
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .insert([{ user_id: user.id, total }])
+      .insert([
+        {
+          user_id: user.id,
+          total: getTotal(),
+          status: "W realizacji",
+        },
+      ])
       .select()
       .single();
 
     if (orderError) {
       console.error(orderError);
-      alert("Nie udało się utworzyć zamówienia!");
+      showSnackbar("Nie udało się utworzyć zamówienia!");
       return;
     }
 
@@ -51,133 +65,80 @@ export default function CartScreen() {
 
     if (itemsError) {
       console.error(itemsError);
-      alert("Nie udało się zapisać produktów zamówienia!");
+      showSnackbar("Nie udało się zapisać produktów zamówienia!");
       return;
     }
 
     clearCart();
-    alert("Zamówienie zostało złożone!");
+    showSnackbar("Zamówienie zostało pomyślnie złożone!");
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        padding: 16,
-        backgroundColor: "#f5f6fa",
-      }}
-    >
-      <Text
-        variant="headlineSmall"
-        style={{
-          fontWeight: "700",
-          marginBottom: 6,
-        }}
-      >
-        Twój koszyk
-      </Text>
-      <Text style={{ color: "#666", marginBottom: 16 }}>
-        Sprawdź produkty przed złożeniem zamówienia
-      </Text>
-
-      {items.length === 0 ? (
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ fontSize: 16, opacity: 0.6 }}>
-            Twój koszyk jest pusty
-          </Text>
-        </View>
+    <View style={{ flex: 1, backgroundColor: "#f5f6fa" }}>
+      {count === 0 ? (
+        <EmptyState icon="cart-outline" message="Twój koszyk jest pusty" />
       ) : (
-        <>
-          <FlatList
-            data={items}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingBottom: 80 }}
-            renderItem={({ item }) => (
-              <Card
-                style={{
-                  marginBottom: 12,
-                  borderRadius: 10,
-                  backgroundColor: "#fff",
-                }}
-              >
-                <Card.Content
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "600",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {item.name}
-                    </Text>
-                    <Text style={{ color: "#555", marginBottom: 2 }}>
-                      Ilość: {item.quantity}
-                    </Text>
-                    <Text style={{ fontWeight: "600" }}>
-                      {(item.price * item.quantity).toFixed(2)} zł
-                    </Text>
-                  </View>
-
-                  <Button
-                    textColor="#d63031"
-                    onPress={() => removeFromCart(item.id)}
-                  >
-                    Usuń
-                  </Button>
-                </Card.Content>
-              </Card>
-            )}
-          />
-
-          <Divider style={{ marginVertical: 16 }} />
-
-          <View
-            style={{
-              backgroundColor: "#fff",
-              padding: 16,
-              borderRadius: 12,
-              elevation: 2,
-            }}
+        <ScrollView style={{ flex: 1, padding: 16 }}>
+          <Text
+            variant="headlineSmall"
+            style={{ fontWeight: "700", marginBottom: 14 }}
           >
-            <Text
-              variant="titleMedium"
-              style={{
-                textAlign: "right",
-                fontWeight: "600",
-                fontSize: 18,
-                marginBottom: 8,
-              }}
-            >
-              Suma: {totalPrice().toFixed(2)} zł
-            </Text>
+            Twój koszyk ({count})
+          </Text>
 
-            <Button
-              mode="contained"
-              onPress={handleOrder}
-              style={{
-                borderRadius: 10,
-                paddingVertical: 6,
-                marginTop: 4,
-              }}
-            >
-              Złóż zamówienie
-            </Button>
-          </View>
-        </>
+          {items.map((item) => (
+            <Card key={item.id} style={{ marginBottom: 12, borderRadius: 12 }}>
+              <Card.Title
+                title={item.name}
+                subtitle={`${item.quantity} szt.`}
+              />
+              <Card.Content>
+                <Text>{formatPrice(item.price * item.quantity)}</Text>
+              </Card.Content>
+              <Card.Actions>
+                <Button
+                  textColor="#e74c3c"
+                  onPress={() => removeFromCart(item.id)}
+                >
+                  Usuń
+                </Button>
+              </Card.Actions>
+            </Card>
+          ))}
+
+          <Divider style={{ marginVertical: 12 }} />
+
+          <Text style={{ textAlign: "right", fontWeight: "700", fontSize: 18 }}>
+            Suma: {formatPrice(total)}
+          </Text>
+
+          <Button
+            mode="contained"
+            style={{ marginTop: 20, backgroundColor: "#4caf50" }}
+            onPress={placeOrder}
+          >
+            Złóż zamówienie
+          </Button>
+
+          <Button
+            mode="outlined"
+            textColor="#333"
+            style={{ marginTop: 10 }}
+            onPress={clearCart}
+          >
+            Wyczyść koszyk
+          </Button>
+        </ScrollView>
       )}
+
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={3000}
+        style={{ backgroundColor: "#4caf50" }}
+      >
+        {snackbarText}
+      </Snackbar>
     </View>
   );
 }

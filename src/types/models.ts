@@ -6,6 +6,10 @@ export interface Product {
   image_url?: string;
 }
 
+export type CartItem = Product & {
+  quantity: number;
+};
+
 export type Profile = {
   id: string;
   full_name: string | null;
