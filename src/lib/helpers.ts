@@ -1,9 +1,30 @@
+import i18n from "../i18n";
+
 export function formatPrice(value: number): string {
-  return `${value.toFixed(2)} zł`;
+  const lang = i18n.language || "pl";
+
+  if (lang === "pl") {
+    return `${value.toLocaleString("pl-PL", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} zł`;
+  } else {
+    return `PLN ${value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
 }
 
 export function formatDate(date: string | Date): string {
-  return new Date(date).toLocaleString("pl-PL");
+  const lang = i18n.language || "pl";
+  return new Intl.DateTimeFormat(lang, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(date));
 }
 
 export function shortId(id: string): string {

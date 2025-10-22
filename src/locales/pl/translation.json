@@ -16,14 +16,19 @@
     "clear": "Wyczyść koszyk",
     "order": "Złóż zamówienie",
     "summary": "Suma",
+    "pieces": "szt.",
     "loginRequired": "Musisz być zalogowany, aby złożyć zamówienie!",
     "emptyError": "Koszyk jest pusty!",
     "orderError": "Nie udało się utworzyć zamówienia!",
     "itemsError": "Nie udało się zapisać produktów zamówienia!",
-    "orderSuccess": "Zamówienie zostało pomyślnie złożone!"
+    "orderSuccess": "Zamówienie zostało pomyślnie złożone!",
+    "items_one": "{{count}} produkt",
+    "items_few": "{{count}} produkty",
+    "items_many": "{{count}} produktów",
+    "items_other": "{{count}} produktów"
   },
   "orders": {
-    "title": "Zamówienia",
+    "title": "Twoje zamówienia",
     "subtitle": "Przeglądaj historię swoich zamówień",
     "filter": "Filtr statusu",
     "sort": "Sortowanie",
@@ -37,8 +42,8 @@
     "product": "Produkt",
     "noItems": "Brak pozycji w tym zamówieniu",
     "itemsError": "Nie udało się pobrać pozycji zamówień!",
-    "noOrders": "Brak zamówień",
-    "total": "Łączna kwota"
+    "noOrders": "Nie masz jeszcze żadnych zamówień",
+    "total": "Suma"
   },
   "favorites": {
     "title": "Ulubione",

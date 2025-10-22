@@ -21,12 +21,12 @@ export default function CartScreen() {
     const user = userData?.user;
 
     if (!user) {
-      snackbar.show(t("orders.loginRequired"), 3000, "#e74c3c");
+      snackbar.show(t("cart.loginRequired"), 3000, "#e74c3c");
       return;
     }
 
     if (items.length === 0) {
-      snackbar.show(t("orders.empty"), 3000, "#e74c3c");
+      snackbar.show(t("cart.emptyError"), 3000, "#e74c3c");
       return;
     }
 
@@ -44,7 +44,7 @@ export default function CartScreen() {
 
     if (orderError) {
       console.error(orderError);
-      snackbar.show(t("orders.createError"), 3000, "#e74c3c");
+      snackbar.show(t("cart.orderError"), 3000, "#e74c3c");
       return;
     }
 
@@ -61,12 +61,12 @@ export default function CartScreen() {
 
     if (itemsError) {
       console.error(itemsError);
-      snackbar.show(t("orders.itemsError"), 3000, "#e74c3c");
+      snackbar.show(t("cart.itemsError"), 3000, "#e74c3c");
       return;
     }
 
     clearCart();
-    snackbar.show(t("orders.success"));
+    snackbar.show(t("cart.orderSuccess"));
   };
 
   return (
@@ -79,7 +79,7 @@ export default function CartScreen() {
             variant="headlineSmall"
             style={{ fontWeight: "700", marginBottom: 6, marginTop: 18 }}
           >
-            {t("cart.title")} ({count})
+            {t("cart.title")} — {t("cart.items", { count })}
           </Text>
 
           {items.map((item) => (
@@ -105,7 +105,7 @@ export default function CartScreen() {
           <Divider style={{ marginVertical: 12 }} />
 
           <Text style={{ textAlign: "right", fontWeight: "700", fontSize: 18 }}>
-            {t("cart.total")}: {formatPrice(total)}
+            {t("cart.summary")}: {formatPrice(total)}
           </Text>
 
           <Button
@@ -113,7 +113,7 @@ export default function CartScreen() {
             style={{ marginTop: 20, backgroundColor: "#4caf50" }}
             onPress={placeOrder}
           >
-            {t("cart.placeOrder")}
+            {t("cart.order")}
           </Button>
 
           <Button

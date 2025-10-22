@@ -16,11 +16,14 @@
     "clear": "Clear cart",
     "order": "Place order",
     "summary": "Total",
+    "pieces": "pcs",
     "loginRequired": "You must be logged in to place an order!",
     "emptyError": "Your cart is empty!",
     "orderError": "Failed to create order!",
     "itemsError": "Failed to save order items!",
-    "orderSuccess": "Order placed successfully!"
+    "orderSuccess": "Order placed successfully!",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items"
   },
   "orders": {
     "title": "Your Orders",
