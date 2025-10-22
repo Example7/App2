@@ -1,9 +1,10 @@
-import React, { useLayoutEffect } from "react";
+import React from "react";
 import { View, ScrollView, Image } from "react-native";
-import { Text, Button, IconButton } from "react-native-paper";
+import { Text, IconButton } from "react-native-paper";
 import { useCartStore } from "../../store/useCartStore";
 import { useFavoritesStore } from "../../store/useFavoritesStore";
 import { useTranslation } from "react-i18next";
+import AnimatedAddToCartButton from "../../components/AnimatedAddToCartButton";
 
 export default function ProductDetailsScreen({ route, navigation }: any) {
   const { t } = useTranslation();
@@ -11,11 +12,10 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
   const addToCart = useCartStore((s) => s.addToCart);
   const { isFavorite, toggleFavorite } = useFavoritesStore();
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: t("home.productDetails"),
-    });
-  }, [navigation, t]);
+  const handleAddToCart = () => {
+    addToCart(product);
+    navigation.goBack();
+  };
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#f5f6fa" }}>
@@ -93,31 +93,17 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
             })}
         </Text>
 
-        <Button
-          mode="contained"
-          onPress={() => {
-            addToCart(product);
-            navigation.goBack();
-          }}
-          style={{
-            marginTop: 30,
-            backgroundColor: "#4caf50",
-            borderRadius: 10,
-            paddingVertical: 6,
-          }}
-          labelStyle={{ fontSize: 16, fontWeight: "600", color: "#fff" }}
-        >
-          {t("home.addToCart")}
-        </Button>
+        <AnimatedAddToCartButton
+          onPress={handleAddToCart}
+          label={t("home.addToCart")}
+        />
 
-        <Button
-          mode="text"
+        <IconButton
+          icon="arrow-left"
+          size={24}
           onPress={() => navigation.goBack()}
-          style={{ marginTop: 12 }}
-          labelStyle={{ color: "#555" }}
-        >
-          {t("common.back")}
-        </Button>
+          style={{ marginTop: 12, alignSelf: "center" }}
+        />
       </View>
     </ScrollView>
   );
