@@ -4,7 +4,7 @@ import { Text, IconButton } from "react-native-paper";
 import { useCartStore } from "../../store/useCartStore";
 import { useFavoritesStore } from "../../store/useFavoritesStore";
 import { useTranslation } from "react-i18next";
-//import AnimatedAddToCartButton from "../../components/AnimatedAddToCartButton";
+import AnimatedAddToCartButton from "../../components/AnimatedAddToCartButton";
 
 export default function ProductDetailsScreen({ route, navigation }: any) {
   const { t } = useTranslation();
@@ -93,10 +93,10 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
             })}
         </Text>
 
-        {/* <AnimatedAddToCartButton
+        <AnimatedAddToCartButton
           onPress={handleAddToCart}
           label={t("home.addToCart")}
-        /> */}
+        />
 
         <IconButton
           icon="arrow-left"
