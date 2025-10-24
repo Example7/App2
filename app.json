@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example7.App2"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,13 +22,26 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.example7.App2"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      [
+        "sentry-expo",
+        {
+          "organization": "dalma-4f",
+          "project": "react-native"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "1c061636-f350-41ed-bda6-81716c368083"
+      }
+    }
   }
 }

@@ -1,5 +1,7 @@
 import "react-native-gesture-handler";
+import "react-native-reanimated";
 import "./i18n";
+import * as Sentry from "sentry-expo";
 
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
@@ -20,6 +22,13 @@ import CartIconWithBadge from "./components/CartIconWithBadge";
 import FavoritesScreen from "./features/favorites/FavoritesScreen";
 import ProductDetailScreen from "./features/products/ProductDetailScreen";
 import SplashScreen from "./features/auth/SplashScreen";
+
+Sentry.init({
+  dsn: "https://c69df73fb8beb254b2e81b6cda633757@o4510232972361728.ingest.de.sentry.io/4510232974065744",
+  enableInExpoDevelopment: true,
+  debug: true,
+  tracesSampleRate: 1.0,
+});
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -97,6 +106,9 @@ export default function App() {
     const timer = setTimeout(() => {
       setSplashVisible(false);
     }, 1500);
+
+    //Sentry test
+    Sentry.Native.captureMessage("Testowa wiadomość z Expo App2");
 
     return () => clearTimeout(timer);
   }, []);
