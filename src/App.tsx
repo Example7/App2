@@ -15,6 +15,7 @@ import { Provider as PaperProvider, Icon } from "react-native-paper";
 import { useAuthStore } from "./store/useAuthStore";
 import { SnackbarProvider } from "./providers/SnackbarProvider";
 import { useTranslation } from "react-i18next";
+import { AnimationsScreen } from "./features/animations";
 
 import LoginScreen from "./features/auth/LoginScreen";
 import RegisterScreen from "./features/auth/RegisterScreen";
@@ -100,6 +101,16 @@ function AppTabs() {
           title: t("profile.title"),
           tabBarIcon: ({ color, size }) => (
             <Icon source="account-circle-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Animations"
+        component={AnimationsScreen}
+        options={{
+          title: "Animacje",
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="animation-outline" color={color} size={size} />
           ),
         }}
       />
