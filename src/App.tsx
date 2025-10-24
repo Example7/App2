@@ -2,8 +2,12 @@ import "react-native-gesture-handler";
 import "react-native-reanimated";
 import "./i18n";
 import * as Sentry from "sentry-expo";
+import {
+  ReactNavigationInstrumentation,
+  ReactNativeTracing,
+} from "@sentry/react-native";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -23,11 +27,18 @@ import FavoritesScreen from "./features/favorites/FavoritesScreen";
 import ProductDetailScreen from "./features/products/ProductDetailScreen";
 import SplashScreen from "./features/auth/SplashScreen";
 
+const routingInstrumentation = new ReactNavigationInstrumentation();
+
 Sentry.init({
   dsn: "https://c69df73fb8beb254b2e81b6cda633757@o4510232972361728.ingest.de.sentry.io/4510232974065744",
   enableInExpoDevelopment: true,
   debug: true,
   tracesSampleRate: 1.0,
+  integrations: [
+    new ReactNativeTracing({
+      routingInstrumentation,
+    }),
+  ],
 });
 
 const Stack = createNativeStackNavigator();
@@ -98,9 +109,14 @@ function AppTabs() {
 
 export default function App() {
   const { session, loading, fetchSession } = useAuthStore();
+  console.log("App render → loading:", loading, "session:", session);
+
   const [splashVisible, setSplashVisible] = useState(true);
 
+  const navigationRef = useRef(null);
+
   useEffect(() => {
+    console.log("App useEffect start");
     fetchSession();
 
     const timer = setTimeout(() => {
@@ -114,13 +130,25 @@ export default function App() {
   }, []);
 
   if (loading || splashVisible) {
+    console.log(
+      "Showing SplashScreen (loading:",
+      loading,
+      ", splash:",
+      splashVisible,
+      ")"
+    );
     return <SplashScreen />;
   }
 
   return (
     <PaperProvider>
       <SnackbarProvider>
-        <NavigationContainer>
+        <NavigationContainer
+          ref={navigationRef}
+          onReady={() => {
+            routingInstrumentation.registerNavigationContainer(navigationRef);
+          }}
+        >
           <Stack.Navigator>
             {session ? (
               <>
