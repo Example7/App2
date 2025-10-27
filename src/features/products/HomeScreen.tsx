@@ -43,7 +43,7 @@ export default function HomeScreen() {
     setFiltered(filterProducts(products, query));
   }, [query, products]);
 
-  if (loading) return <LoadingView message="Wczytywanie produktów..." />;
+  if (loading) return <LoadingView message={t("home.loading")} />;
 
   return (
     <View style={{ flex: 1, padding: 16, backgroundColor: "#f5f6fa" }}>

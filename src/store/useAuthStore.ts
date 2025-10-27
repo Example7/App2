@@ -4,6 +4,7 @@ import { supabase } from "../lib";
 interface AuthState {
   session: any | null;
   loading: boolean;
+  role: "user" | "admin" | null;
   fetchSession: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -11,18 +12,40 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   loading: true,
+  role: null,
 
   fetchSession: async () => {
     const { data, error } = await supabase.auth.getSession();
-    set({ session: data.session ?? null, loading: false });
+    const session = data.session ?? null;
+    let role: "user" | "admin" | null = null;
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      set({ session });
+    if (session?.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+      role = profile?.role ?? "user";
+    }
+
+    set({ session, role, loading: false });
+
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        set({ session, role: profile?.role ?? "user" });
+      } else {
+        set({ session: null, role: null });
+      }
     });
   },
 
   signOut: async () => {
     await supabase.auth.signOut();
-    set({ session: null });
+    set({ session: null, role: null });
   },
 }));

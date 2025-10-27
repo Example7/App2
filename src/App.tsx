@@ -32,6 +32,8 @@ import FavoritesScreen from "./features/favorites/FavoritesScreen";
 import ProductDetailScreen from "./features/products/ProductDetailScreen";
 import SplashScreen from "./features/auth/SplashScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import DashboardScreen from "./features/dashboard/DashboardScreen";
+import UserStatsScreen from "./features/profile/UserStatsScreen";
 
 const routingInstrumentation = new ReactNavigationInstrumentation();
 
@@ -64,6 +66,7 @@ const theme = {
 
 function AppTabs() {
   const { t } = useTranslation();
+  const { role } = useAuthStore();
 
   return (
     <Tab.Navigator
@@ -125,48 +128,42 @@ function AppTabs() {
         name="Animations"
         component={AnimationsScreen}
         options={{
-          title: "Animacje",
+          title: t("animations.title", { defaultValue: "Animacje" }),
           tabBarIcon: ({ color, size }) => (
             <Icon source="animation-outline" color={color} size={size} />
           ),
         }}
       />
+      {role === "admin" && (
+        <Tab.Screen
+          name="Dashboard"
+          component={DashboardScreen}
+          options={{
+            title: t("dashboard.title", { defaultValue: "Dashboard" }),
+            tabBarIcon: ({ color, size }) => (
+              <Icon source="chart-bar" color={color} size={size} />
+            ),
+          }}
+        />
+      )}
     </Tab.Navigator>
   );
 }
 
 export default function App() {
+  const { t } = useTranslation();
   const { session, loading, fetchSession } = useAuthStore();
-  console.log("App render → loading:", loading, "session:", session);
-
   const [splashVisible, setSplashVisible] = useState(true);
-
   const navigationRef = useRef(null);
 
   useEffect(() => {
-    console.log("App useEffect start");
     fetchSession();
-
-    const timer = setTimeout(() => {
-      setSplashVisible(false);
-    }, 1500);
-
-    //Sentry test
+    const timer = setTimeout(() => setSplashVisible(false), 1500);
     Sentry.Native.captureMessage("Testowa wiadomość z Expo App2");
-
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading || splashVisible) {
-    console.log(
-      "Showing SplashScreen (loading:",
-      loading,
-      ", splash:",
-      splashVisible,
-      ")"
-    );
-    return <SplashScreen />;
-  }
+  if (loading || splashVisible) return <SplashScreen />;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -174,9 +171,9 @@ export default function App() {
         <SnackbarProvider>
           <NavigationContainer
             ref={navigationRef}
-            onReady={() => {
-              routingInstrumentation.registerNavigationContainer(navigationRef);
-            }}
+            onReady={() =>
+              routingInstrumentation.registerNavigationContainer(navigationRef)
+            }
           >
             <Stack.Navigator>
               {session ? (
@@ -190,6 +187,15 @@ export default function App() {
                     name="ProductDetails"
                     component={ProductDetailScreen}
                     options={{ headerShown: true }}
+                  />
+                  <Stack.Screen
+                    name="UserStats"
+                    component={UserStatsScreen}
+                    options={{
+                      title: t("userStats.title", {
+                        defaultValue: "Twoje statystyki",
+                      }),
+                    }}
                   />
                 </>
               ) : (

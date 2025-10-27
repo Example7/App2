@@ -13,9 +13,11 @@ import { Profile } from "../../types";
 import { LoadingView } from "../../components";
 import { useSnackbar } from "../../hooks/useSnackbar";
 import { useTranslation } from "react-i18next";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation<any>();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -219,6 +221,13 @@ export default function ProfileScreen() {
         numberOfLines={3}
         style={{ marginBottom: 16 }}
       />
+
+      <Button
+        mode="contained-tonal"
+        onPress={() => navigation.navigate("UserStats")}
+      >
+        {t("profile.viewStats")}
+      </Button>
 
       <Button onPress={() => i18n.changeLanguage("en")}>English</Button>
       <Button onPress={() => i18n.changeLanguage("pl")}>Polski</Button>

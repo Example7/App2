@@ -7,7 +7,8 @@
     "noProducts": "No available products",
     "availableProducts": "Available products",
     "noDescription": "No additional information about this product.",
-    "productDetails": "Product details"
+    "productDetails": "Product details",
+    "loading": "Loading products..."
   },
   "cart": {
     "title": "Your Cart",
@@ -71,7 +72,24 @@
     "summary": "Profile summary:",
     "noPhone": "No phone number",
     "noAddress": "No address",
-    "noBio": "No bio"
+    "noBio": "No bio",
+    "viewStats": "View your stats"
+  },
+  "userStats": {
+    "title": "Your statistics",
+    "loading": "Loading your stats...",
+    "orderCount": "Number of orders",
+    "totalSpent": "Total spent",
+    "topProducts": "Most purchased products",
+    "noData": "No product data available"
+  },
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "ordersByStatus": "Total orders by status",
+    "dailySales": "Daily sales",
+    "orderStatusShare": "Order status share",
+    "noAccessTitle": "Access denied",
+    "noAccessText": "This panel is available only for administrators."
   },
   "auth": {
     "login": "Login",
@@ -94,6 +112,9 @@
   "splash": {
     "title": "TechShop",
     "loading": "Loading..."
+  },
+  "animations": {
+    "title": "Animations"
   },
   "common": {
     "loading": "Loading...",
