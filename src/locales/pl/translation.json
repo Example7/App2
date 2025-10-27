@@ -28,7 +28,7 @@
     "items_other": "{{count}} produktów"
   },
   "orders": {
-    "title": "Twoje zamówienia",
+    "title": "Zamówienia",
     "subtitle": "Przeglądaj historię swoich zamówień",
     "filter": "Filtr statusu",
     "sort": "Sortowanie",

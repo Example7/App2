@@ -253,7 +253,7 @@ export default function OrdersScreen() {
                       marginRight: 10,
                     }}
                   >
-                    {t(`orders.status.${order.status}`, order.status)}
+                    {t(`orders.${order.status}`)}
                   </Text>
                 )}
               />

@@ -36,7 +36,7 @@ export default function CartScreen() {
         {
           user_id: user.id,
           total: getTotal(),
-          status: t("orders.inProgress"),
+          status: t("orders.in_progress"),
         },
       ])
       .select()

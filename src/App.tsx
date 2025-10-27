@@ -11,7 +11,11 @@ import React, { useEffect, useState, useRef } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Provider as PaperProvider, Icon } from "react-native-paper";
+import {
+  Provider as PaperProvider,
+  Icon,
+  MD3LightTheme,
+} from "react-native-paper";
 import { useAuthStore } from "./store/useAuthStore";
 import { SnackbarProvider } from "./providers/SnackbarProvider";
 import { useTranslation } from "react-i18next";
@@ -45,6 +49,18 @@ Sentry.init({
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const theme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    onBackground: "#000",
+    onSurface: "#000",
+    outline: "#aaa",
+    primary: "#1976d2",
+    secondary: "#4caf50",
+  },
+};
 
 function AppTabs() {
   const { t } = useTranslation();
@@ -154,7 +170,7 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <PaperProvider>
+      <PaperProvider theme={theme}>
         <SnackbarProvider>
           <NavigationContainer
             ref={navigationRef}
