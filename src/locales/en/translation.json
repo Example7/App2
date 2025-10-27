@@ -31,7 +31,7 @@
     "filter": "Status filter",
     "sort": "Sort order",
     "all": "All",
-    "inProgress": "In progress",
+    "in_progress": "In progress",
     "completed": "Completed",
     "cancelled": "Cancelled",
     "newest": "Newest",
