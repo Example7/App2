@@ -6,6 +6,15 @@ export interface Product {
   image_url?: string;
 }
 
+export interface ProductCardProps {
+  product: Product;
+  avgRating?: number;
+  reviewCount?: number;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  onAddToCart?: () => void;
+}
+
 export type CartItem = Product & {
   quantity: number;
 };

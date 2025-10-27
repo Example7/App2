@@ -26,6 +26,19 @@
     "items_one": "{{count}} item",
     "items_other": "{{count}} items"
   },
+  "reviews": {
+    "title": "User Reviews",
+    "noReviews": "No reviews for this product",
+    "anonymous": "Anonymous user",
+    "rating": "Rating",
+    "addReview": "Add your review",
+    "commentLabel": "Comment (optional)",
+    "submit": "Submit review",
+    "loading": "Loading reviews...",
+    "mustLogin": "You must be logged in to add a review.",
+    "invalidRating": "Please provide a rating between 1 and 5.",
+    "error": "Error while submitting review"
+  },
   "orders": {
     "title": "Your Orders",
     "subtitle": "Browse your order history",

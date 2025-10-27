@@ -1,10 +1,16 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, ScrollView, Image } from "react-native";
-import { Text, IconButton } from "react-native-paper";
+import { Text, IconButton, ActivityIndicator } from "react-native-paper";
 import { useCartStore } from "../../store/useCartStore";
 import { useFavoritesStore } from "../../store/useFavoritesStore";
 import { useTranslation } from "react-i18next";
 import AnimatedAddToCartButton from "../../components/AnimatedAddToCartButton";
+import ProductReviews from "./ProductReviews";
+import {
+  getAverageProductRating,
+  renderStars,
+  formatStarsLabel,
+} from "../../lib";
 
 export default function ProductDetailsScreen({ route, navigation }: any) {
   const { t } = useTranslation();
@@ -12,10 +18,23 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
   const addToCart = useCartStore((s) => s.addToCart);
   const { isFavorite, toggleFavorite } = useFavoritesStore();
 
+  const [avgRating, setAvgRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [loadingRating, setLoadingRating] = useState(true);
+
   const handleAddToCart = () => {
     addToCart(product);
     navigation.goBack();
   };
+
+  useEffect(() => {
+    (async () => {
+      const { avg, count } = await getAverageProductRating(product.id);
+      setAvgRating(avg);
+      setReviewCount(count);
+      setLoadingRating(false);
+    })();
+  }, [product.id]);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#f5f6fa" }}>
@@ -75,6 +94,23 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
           />
         </View>
 
+        {loadingRating ? (
+          <ActivityIndicator size="small" />
+        ) : (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
+            {renderStars(avgRating)}
+            <Text style={{ marginLeft: 6, color: "#666" }}>
+              {formatStarsLabel(avgRating, reviewCount)}
+            </Text>
+          </View>
+        )}
+
         <Text style={{ fontSize: 18, color: "#2196f3", fontWeight: "700" }}>
           {product.price.toFixed(2)} zł
         </Text>
@@ -92,6 +128,8 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
               defaultValue: "No additional information about this product.",
             })}
         </Text>
+
+        <ProductReviews productId={product.id} />
 
         <AnimatedAddToCartButton
           onPress={handleAddToCart}

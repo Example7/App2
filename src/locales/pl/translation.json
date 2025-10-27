@@ -28,6 +28,19 @@
     "items_many": "{{count}} produktów",
     "items_other": "{{count}} produktów"
   },
+  "reviews": {
+    "title": "Opinie użytkowników",
+    "noReviews": "Brak opinii dla tego produktu",
+    "anonymous": "Anonimowy użytkownik",
+    "rating": "Ocena",
+    "addReview": "Dodaj swoją opinię",
+    "commentLabel": "Komentarz (opcjonalny)",
+    "submit": "Dodaj opinię",
+    "loading": "Wczytywanie opinii...",
+    "mustLogin": "Musisz być zalogowany, aby dodać opinię.",
+    "invalidRating": "Podaj ocenę od 1 do 5.",
+    "error": "Błąd podczas dodawania opinii"
+  },
   "orders": {
     "title": "Zamówienia",
     "subtitle": "Przeglądaj historię swoich zamówień",

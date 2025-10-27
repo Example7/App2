@@ -3,16 +3,13 @@ import { View } from "react-native";
 import { Card, Text, Button, IconButton } from "react-native-paper";
 import { Product } from "../../../types/models";
 import { useTranslation } from "react-i18next";
-
-interface ProductCardProps {
-  product: Product;
-  isFavorite?: boolean;
-  onToggleFavorite?: () => void;
-  onAddToCart?: () => void;
-}
+import { renderStars, formatStarsLabel, formatPrice } from "../../../lib";
+import { ProductCardProps } from "../../../types/models";
 
 export default function ProductCard({
   product,
+  avgRating = 0,
+  reviewCount = 0,
   isFavorite,
   onToggleFavorite,
   onAddToCart,
@@ -26,6 +23,9 @@ export default function ProductCard({
         borderRadius: 14,
         backgroundColor: "#fff",
         elevation: 3,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
         overflow: "hidden",
       }}
     >
@@ -47,7 +47,7 @@ export default function ProductCard({
             justifyContent: "center",
           }}
         >
-          <Text style={{ color: "#777" }}>Brak zdjęcia</Text>
+          <Text style={{ color: "#777" }}>{t("home.noImage")}</Text>
         </View>
       )}
 
@@ -83,14 +83,35 @@ export default function ProductCard({
           {product.name}
         </Text>
 
+        {reviewCount > 0 ? (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 6,
+            }}
+          >
+            {renderStars(avgRating)}
+            <Text style={{ color: "#666", marginLeft: 6 }}>
+              {formatStarsLabel(avgRating, reviewCount)}
+            </Text>
+          </View>
+        ) : (
+          <Text
+            style={{
+              color: "#999",
+              fontStyle: "italic",
+              marginBottom: 6,
+            }}
+          >
+            {t("reviews.noReviews")}
+          </Text>
+        )}
+
         {product.description && (
           <Text
             numberOfLines={2}
-            style={{
-              color: "#666",
-              fontSize: 14,
-              marginBottom: 8,
-            }}
+            style={{ color: "#666", fontSize: 14, marginBottom: 8 }}
           >
             {product.description}
           </Text>
@@ -104,14 +125,8 @@ export default function ProductCard({
             marginTop: 6,
           }}
         >
-          <Text
-            style={{
-              fontWeight: "700",
-              fontSize: 18,
-              color: "#2196f3",
-            }}
-          >
-            {product.price.toFixed(2)} zł
+          <Text style={{ fontWeight: "700", fontSize: 18, color: "#2196f3" }}>
+            {formatPrice(product.price)}
           </Text>
 
           {onAddToCart && (

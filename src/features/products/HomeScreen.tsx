@@ -8,20 +8,20 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types";
 import { LoadingView, EmptyState } from "../../components";
-import { filterProducts } from "../../lib/helpers";
+import { filterProducts, calculateAverageRatings } from "../../lib";
 import { useTranslation } from "react-i18next";
 
 export default function HomeScreen() {
   const [products, setProducts] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
+  const [ratings, setRatings] = useState<Record<number, number>>({});
+  const [reviewCounts, setReviewCounts] = useState<Record<number, number>>({});
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   const addToCart = useCartStore((s) => s.addToCart);
   const { toggleFavorite, isFavorite, fetchFavorites } = useFavoritesStore();
-
   const { t } = useTranslation();
-
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -32,10 +32,23 @@ export default function HomeScreen() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("products").select("*");
-    if (error) console.error("Błąd pobierania produktów:", error);
-    setProducts(data || []);
-    setFiltered(data || []);
+
+    const [{ data: products }, { data: reviews }] = await Promise.all([
+      supabase.from("products").select("*"),
+      supabase.from("reviews").select("product_id, rating"),
+    ]);
+
+    if (products) {
+      setProducts(products);
+      setFiltered(products);
+    }
+
+    if (reviews) {
+      const { averages, counts } = calculateAverageRatings(reviews);
+      setRatings(averages);
+      setReviewCounts(counts);
+    }
+
     setLoading(false);
   };
 
@@ -84,7 +97,7 @@ export default function HomeScreen() {
       </View>
 
       {filtered.length === 0 ? (
-        <EmptyState icon="magnify" message="Nie znaleziono produktów" />
+        <EmptyState icon="magnify" message={t("home.noProducts")} />
       ) : (
         <FlatList
           data={filtered}
@@ -98,6 +111,8 @@ export default function HomeScreen() {
             >
               <ProductCard
                 product={item}
+                avgRating={ratings[item.id] || 0}
+                reviewCount={reviewCounts[item.id] || 0}
                 isFavorite={isFavorite(item.id)}
                 onToggleFavorite={() => toggleFavorite(item.id)}
                 onAddToCart={() => addToCart(item)}
