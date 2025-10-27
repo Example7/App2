@@ -6,7 +6,7 @@ import { Order, OrderItem } from "../../types";
 import { LoadingView, EmptyState } from "../../components";
 import { useTranslation } from "react-i18next";
 
-type FilterKey = "all" | "inProgress" | "completed" | "cancelled";
+type FilterKey = "all" | "in_progress" | "completed" | "cancelled";
 
 export default function OrdersScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -19,7 +19,7 @@ export default function OrdersScreen() {
 
   const statusMap: Record<FilterKey, string> = {
     all: "all",
-    inProgress: "in_progress",
+    in_progress: "in_progress",
     completed: "completed",
     cancelled: "cancelled",
   };
@@ -141,7 +141,7 @@ export default function OrdersScreen() {
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
             {[
               { key: "all", label: t("orders.all", { defaultValue: "All" }) },
-              { key: "inProgress", label: t("orders.inProgress") },
+              { key: "inProgress", label: t("orders.in_progress") },
               { key: "completed", label: t("orders.completed") },
               {
                 key: "cancelled",
