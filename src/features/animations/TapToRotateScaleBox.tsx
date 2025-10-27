@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
@@ -12,8 +13,11 @@ export const TapRotateScaleBox = () => {
   const scale = useSharedValue(1);
 
   const tap = Gesture.Tap().onStart(() => {
-    rotation.value = withSpring(rotation.value + 360);
-    scale.value = withSpring(1.4, {}, () => {
+    rotation.value = withTiming((rotation.value + 360) % 360, {
+      duration: 600,
+    });
+
+    scale.value = withSpring(1.4, { damping: 8, stiffness: 150 }, () => {
       scale.value = withSpring(1);
     });
   });

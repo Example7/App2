@@ -4,7 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
+  runOnJS,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
@@ -28,7 +28,7 @@ export default function AnimatedAddToCartButton({
     .onEnd(() => {
       scale.value = withSpring(1);
       color.value = "#4caf50";
-      onPress();
+      runOnJS(onPress)();
     });
 
   const animatedStyle = useAnimatedStyle(() => ({

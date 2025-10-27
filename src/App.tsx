@@ -27,6 +27,7 @@ import CartIconWithBadge from "./components/CartIconWithBadge";
 import FavoritesScreen from "./features/favorites/FavoritesScreen";
 import ProductDetailScreen from "./features/products/ProductDetailScreen";
 import SplashScreen from "./features/auth/SplashScreen";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const routingInstrumentation = new ReactNavigationInstrumentation();
 
@@ -152,45 +153,47 @@ export default function App() {
   }
 
   return (
-    <PaperProvider>
-      <SnackbarProvider>
-        <NavigationContainer
-          ref={navigationRef}
-          onReady={() => {
-            routingInstrumentation.registerNavigationContainer(navigationRef);
-          }}
-        >
-          <Stack.Navigator>
-            {session ? (
-              <>
-                <Stack.Screen
-                  name="AppTabs"
-                  component={AppTabs}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="ProductDetails"
-                  component={ProductDetailScreen}
-                  options={{ headerShown: true }}
-                />
-              </>
-            ) : (
-              <>
-                <Stack.Screen
-                  name="Login"
-                  component={LoginScreen}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="Register"
-                  component={RegisterScreen}
-                  options={{ headerShown: false }}
-                />
-              </>
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </SnackbarProvider>
-    </PaperProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PaperProvider>
+        <SnackbarProvider>
+          <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+              routingInstrumentation.registerNavigationContainer(navigationRef);
+            }}
+          >
+            <Stack.Navigator>
+              {session ? (
+                <>
+                  <Stack.Screen
+                    name="AppTabs"
+                    component={AppTabs}
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="ProductDetails"
+                    component={ProductDetailScreen}
+                    options={{ headerShown: true }}
+                  />
+                </>
+              ) : (
+                <>
+                  <Stack.Screen
+                    name="Login"
+                    component={LoginScreen}
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="Register"
+                    component={RegisterScreen}
+                    options={{ headerShown: false }}
+                  />
+                </>
+              )}
+            </Stack.Navigator>
+          </NavigationContainer>
+        </SnackbarProvider>
+      </PaperProvider>
+    </GestureHandlerRootView>
   );
 }
