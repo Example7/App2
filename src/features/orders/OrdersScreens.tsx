@@ -18,10 +18,10 @@ export default function OrdersScreen() {
   const [filter, setFilter] = useState<FilterKey>("all");
 
   const statusMap: Record<FilterKey, string> = {
-    all: "Wszystkie",
-    inProgress: "W realizacji",
-    completed: "Zakończone",
-    cancelled: "Anulowane",
+    all: "all",
+    inProgress: "in_progress",
+    completed: "completed",
+    cancelled: "cancelled",
   };
 
   useEffect(() => {
@@ -98,9 +98,9 @@ export default function OrdersScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case t("orders.completed"):
+      case "completed":
         return "#2ecc71";
-      case t("orders.cancelled"):
+      case "cancelled":
         return "#e74c3c";
       default:
         return "#f1c40f";
@@ -253,7 +253,7 @@ export default function OrdersScreen() {
                       marginRight: 10,
                     }}
                   >
-                    {order.status}
+                    {t(`orders.status.${order.status}`, order.status)}
                   </Text>
                 )}
               />

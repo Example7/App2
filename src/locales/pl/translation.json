@@ -33,7 +33,7 @@
     "filter": "Filtr statusu",
     "sort": "Sortowanie",
     "all": "Wszystkie",
-    "inProgress": "W realizacji",
+    "in_progress": "W realizacji",
     "completed": "Zakończone",
     "cancelled": "Anulowane",
     "newest": "Najnowsze",
