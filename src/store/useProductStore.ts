@@ -7,6 +7,7 @@ interface ProductState {
   ratings: Record<number, { avg: number; count: number }>;
   loading: boolean;
   fetchProducts: () => Promise<void>;
+  initRealtime: () => void;
 }
 
 export const useProductsStore = create<ProductState>((set, get) => ({
@@ -17,12 +18,21 @@ export const useProductsStore = create<ProductState>((set, get) => ({
   fetchProducts: async () => {
     set({ loading: true });
 
-    const [{ data: products }, { data: reviews }] = await Promise.all([
+    const [
+      { data: products, error: prodErr },
+      { data: reviews, error: revErr },
+    ] = await Promise.all([
       supabase
         .from("products")
         .select("id, name, price, description, image_url"),
       supabase.from("reviews").select("product_id, rating"),
     ]);
+
+    if (prodErr || revErr) {
+      console.error("Błąd ładowania produktów:", prodErr || revErr);
+      set({ loading: false });
+      return;
+    }
 
     const ratingsResult = mapAverageRatings(reviews || []);
     set({
@@ -30,17 +40,26 @@ export const useProductsStore = create<ProductState>((set, get) => ({
       ratings: ratingsResult ?? {},
       loading: false,
     });
+  },
 
-    supabase
+  initRealtime: () => {
+    const existingChannel = (supabase as any)._realtimeChannels?.find(
+      (c: any) => c.topic === "realtime:public:products"
+    );
+    if (existingChannel) return;
+
+    const channel = supabase
       .channel("products-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "products" },
         async () => {
-          console.log("Zmiana w tabeli products — odświeżam dane");
+          console.log("📡 Zmiana w tabeli products — odświeżam dane");
           await get().fetchProducts();
         }
       )
       .subscribe();
+
+    console.log("Realtime dla products uruchomiony", channel);
   },
 }));

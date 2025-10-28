@@ -17,12 +17,16 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   const [query, setQuery] = useState("");
   const [filtered, setFiltered] = useState(products);
 
   useEffect(() => {
+    const store = useProductsStore.getState();
     fetchProducts();
     fetchFavorites();
+
+    store.initRealtime();
   }, []);
 
   useFocusEffect(
