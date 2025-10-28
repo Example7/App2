@@ -27,16 +27,49 @@ export default function ProductReviews({ productId }: { productId: number }) {
     fetchReviews();
   }, []);
 
-  const fetchReviews = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("reviews")
-      .select("*, profiles(full_name)")
-      .eq("product_id", productId)
-      .order("created_at", { ascending: false });
+  useEffect(() => {
+    const channel = supabase
+      .channel("reviews-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "reviews" },
+        (payload) => {
+          const newReview = payload.new as { product_id?: number };
 
-    if (!error && data) setReviews(data);
-    setLoading(false);
+          if (newReview.product_id === productId) {
+            fetchReviews();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [productId]);
+
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, profiles(full_name)")
+        .eq("product_id", productId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        Sentry.Native.captureException(error);
+        console.error("Błąd ładowania recenzji:", error);
+        return;
+      }
+
+      setReviews(data || []);
+    } catch (err) {
+      Sentry.Native.captureException(err);
+      console.error("Wystąpił nieoczekiwany błąd:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -52,37 +85,30 @@ export default function ProductReviews({ productId }: { productId: number }) {
 
     setSubmitting(true);
 
-    const newReview = {
-      id: crypto.randomUUID(),
-      user_id: session.user.id,
-      product_id: productId,
-      rating,
-      comment,
-      created_at: new Date().toISOString(),
-      profiles: {
-        full_name: session.user.user_metadata?.full_name || t("reviews.you"),
-      },
-    };
+    try {
+      const { error } = await supabase.from("reviews").insert([
+        {
+          user_id: session.user.id,
+          product_id: productId,
+          rating,
+          comment,
+        },
+      ]);
 
-    const { error } = await supabase.from("reviews").insert([
-      {
-        user_id: session.user.id,
-        product_id: productId,
-        rating,
-        comment,
-      },
-    ]);
-
-    if (error) {
-      Sentry.Native.captureException(error);
+      if (error) {
+        Sentry.Native.captureException(error);
+        alert(t("reviews.error"));
+      } else {
+        await fetchReviews();
+        setComment("");
+        setRating(0);
+      }
+    } catch (err) {
+      Sentry.Native.captureException(err);
       alert(t("reviews.error"));
-    } else {
-      setReviews((prev) => [newReview, ...prev]);
-      setComment("");
-      setRating(0);
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
   };
 
   if (loading) {
