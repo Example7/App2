@@ -91,6 +91,18 @@ export function calculateAverageRatings(reviews: any[]): {
   return { averages, counts };
 }
 
+export function mapAverageRatings(
+  reviews: any[]
+): Record<number, { avg: number; count: number }> {
+  const { averages, counts } = calculateAverageRatings(reviews);
+  const result: Record<number, { avg: number; count: number }> = {};
+  Object.keys(averages).forEach((idStr) => {
+    const id = Number(idStr);
+    result[id] = { avg: averages[id], count: counts[id] };
+  });
+  return result;
+}
+
 export function renderStars(rating: number) {
   return (
     <>

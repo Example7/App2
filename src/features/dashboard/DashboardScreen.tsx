@@ -1,85 +1,57 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Dimensions } from "react-native";
 import { supabase } from "../../lib";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useTranslation } from "react-i18next";
-import {
-  VictoryBar,
-  VictoryPie,
-  VictoryLine,
-  VictoryChart,
-  VictoryTheme,
-  VictoryAxis,
-  VictoryLabel,
-} from "victory-native";
+import { BarChart, LineChart, PieChart } from "react-native-chart-kit";
+
+const screenWidth = Dimensions.get("window").width;
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [dailyData, setDailyData] = useState<any[]>([]);
+  const [barData, setBarData] = useState<any[]>([]);
+  const [lineData, setLineData] = useState<any[]>([]);
   const [pieData, setPieData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const { role } = useAuthStore();
 
   useEffect(() => {
-    if (role === "admin") {
-      fetchStats();
-    }
+    if (role === "admin") fetchStats();
   }, [role]);
 
   const fetchStats = async () => {
-    setLoading(true);
-
     const { data: orders, error } = await supabase
       .from("orders")
       .select("status, total, created_at");
 
-    if (error) {
-      console.error("Błąd pobierania statystyk:", error.message);
-      setLoading(false);
-      return;
-    }
-
-    if (!orders || orders.length === 0) {
-      setChartData([]);
-      setDailyData([]);
-      setPieData([]);
-      setLoading(false);
-      return;
-    }
+    if (error || !orders) return;
 
     const grouped = orders.reduce((acc: any, o: any) => {
-      acc[o.status] = (acc[o.status] || 0) + Number(o.total || 0);
+      acc[o.status] = (acc[o.status] || 0) + Number(o.total);
       return acc;
     }, {});
-    const barData = Object.entries(grouped).map(([status, total]) => ({
-      status,
-      total,
-    }));
+    setBarData(Object.entries(grouped));
 
     const daily = orders.reduce((acc: any, o: any) => {
-      const date = o.created_at?.split("T")[0];
-      if (date) acc[date] = (acc[date] || 0) + Number(o.total || 0);
+      const date = o.created_at.split("T")[0];
+      acc[date] = (acc[date] || 0) + Number(o.total);
       return acc;
     }, {});
-    const lineData = Object.entries(daily).map(([date, total]) => ({
-      date,
-      total,
-    }));
+    setLineData(Object.entries(daily));
 
-    const totalSum = Object.values(grouped).reduce(
-      (sum: number, val: any) => sum + Number(val || 0),
-      0
-    );
+    const totalSum = orders.reduce((sum, o) => sum + Number(o.total), 0);
     const pie = Object.entries(grouped).map(([status, total]) => ({
-      x: status,
-      y: totalSum > 0 ? Math.round((Number(total) / totalSum) * 100) : 0,
+      name: status,
+      population: Math.round((Number(total) / totalSum) * 100),
+      color:
+        status === "completed"
+          ? "#2ecc71"
+          : status === "pending"
+          ? "#f1c40f"
+          : "#e74c3c",
+      legendFontColor: "#333",
+      legendFontSize: 12,
     }));
-
-    setChartData(barData);
-    setDailyData(lineData);
     setPieData(pie);
-    setLoading(false);
   };
 
   if (role !== "admin") {
@@ -90,7 +62,6 @@ export default function DashboardScreen() {
           justifyContent: "center",
           alignItems: "center",
           backgroundColor: "#f9f9f9",
-          padding: 20,
         }}
       >
         <Text style={{ fontSize: 22, fontWeight: "bold", color: "#e74c3c" }}>
@@ -99,21 +70,6 @@ export default function DashboardScreen() {
         <Text style={{ textAlign: "center", color: "#555", marginTop: 8 }}>
           {t("dashboard.noAccessText")}
         </Text>
-      </View>
-    );
-  }
-
-  if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#f9f9f9",
-        }}
-      >
-        <Text>{t("dashboard.loading") || "Wczytywanie danych..."}</Text>
       </View>
     );
   }
@@ -127,68 +83,53 @@ export default function DashboardScreen() {
         {t("dashboard.title")}
       </Text>
 
-      {chartData.length > 0 ? (
+      {barData.length > 0 && (
         <>
           <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>
             {t("dashboard.ordersByStatus")}
           </Text>
-          <VictoryChart
-            theme={VictoryTheme.material}
-            domainPadding={25}
-            animate={{ duration: 800 }}
-          >
-            <VictoryAxis
-              style={{ tickLabels: { fontSize: 12, angle: 0, padding: 8 } }}
-            />
-            <VictoryAxis
-              dependentAxis
-              tickFormat={(x: number) => `${x} zł`}
-              style={{ tickLabels: { fontSize: 10 } }}
-            />
-            <VictoryBar
-              data={chartData}
-              x="status"
-              y="total"
-              style={{ data: { fill: "#4caf50", borderRadius: 4 } }}
-              labels={({ datum }: any) => `${datum.total} zł`}
-              labelComponent={<VictoryLabel dy={-10} />}
-            />
-          </VictoryChart>
+          <BarChart
+            data={{
+              labels: barData.map(([status]) => status),
+              datasets: [{ data: barData.map(([, total]) => Number(total)) }],
+            }}
+            width={screenWidth - 40}
+            height={220}
+            yAxisLabel=""
+            yAxisSuffix=" zł"
+            chartConfig={{
+              backgroundGradientFrom: "#fff",
+              backgroundGradientTo: "#fff",
+              color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+              labelColor: () => "#333",
+              barPercentage: 0.6,
+            }}
+            style={{ borderRadius: 12, marginVertical: 8 }}
+          />
         </>
-      ) : (
-        <Text style={{ color: "#777", fontStyle: "italic" }}>
-          {t("dashboard.noData")}
-        </Text>
       )}
 
-      {dailyData.length > 0 && (
+      {lineData.length > 0 && (
         <>
           <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
             {t("dashboard.dailySales")}
           </Text>
-          <VictoryChart
-            theme={VictoryTheme.material}
-            animate={{ duration: 800 }}
-          >
-            <VictoryAxis
-              fixLabelOverlap
-              tickFormat={(t: string) => t.slice(5)}
-              style={{ tickLabels: { fontSize: 10 } }}
-            />
-            <VictoryAxis
-              dependentAxis
-              tickFormat={(x: number) => `${x} zł`}
-              style={{ tickLabels: { fontSize: 10 } }}
-            />
-            <VictoryLine
-              data={dailyData}
-              x="date"
-              y="total"
-              style={{
-                data: { stroke: "#2196f3", strokeWidth: 3 },
-              }}
-            />
-          </VictoryChart>
+          <LineChart
+            data={{
+              labels: lineData.map(([date]) => date.slice(5)),
+              datasets: [{ data: lineData.map(([, total]) => Number(total)) }],
+            }}
+            width={screenWidth - 40}
+            height={220}
+            yAxisSuffix=" zł"
+            chartConfig={{
+              backgroundGradientFrom: "#fff",
+              backgroundGradientTo: "#fff",
+              color: (opacity = 1) => `rgba(33, 150, 243, ${opacity})`,
+              labelColor: () => "#333",
+            }}
+            style={{ borderRadius: 12 }}
+          />
         </>
       )}
 
@@ -197,14 +138,18 @@ export default function DashboardScreen() {
           <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
             {t("dashboard.orderStatusShare")}
           </Text>
-          <VictoryPie
+          <PieChart
             data={pieData}
-            colorScale={["#f1c40f", "#2ecc71", "#e74c3c", "#3498db"]}
-            labels={({ datum }: any) => `${datum.x}: ${datum.y}%`}
-            innerRadius={50}
-            labelRadius={80}
-            style={{ labels: { fontSize: 14, fill: "#333" } }}
-            animate={{ duration: 800 }}
+            width={screenWidth - 40}
+            height={220}
+            chartConfig={{
+              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            }}
+            accessor={"population"}
+            backgroundColor={"transparent"}
+            paddingLeft={"15"}
+            center={[10, 0]}
+            absolute
           />
         </>
       )}

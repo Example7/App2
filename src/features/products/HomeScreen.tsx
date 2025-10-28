@@ -1,24 +1,22 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, FlatList, TouchableOpacity, TextInput } from "react-native";
 import { Text, IconButton } from "react-native-paper";
-import { supabase } from "../../lib";
+import { filterProducts } from "../../lib";
 import { useCartStore, useFavoritesStore } from "../../store";
 import ProductCard from "./components/ProductCard";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types";
 import { LoadingView, EmptyState } from "../../components";
-import { filterProducts, calculateAverageRatings } from "../../lib";
 import { useTranslation } from "react-i18next";
+import { useProductsStore } from "../../store/useProductStore";
 
 export default function HomeScreen() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [filtered, setFiltered] = useState<any[]>([]);
-  const [ratings, setRatings] = useState<
-    Record<number, { avg: number; count: number }>
-  >({});
+  const { products, ratings, loading, fetchProducts, refreshProducts } =
+    useProductsStore();
+
+  const [filtered, setFiltered] = useState(products);
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
 
   const addToCart = useCartStore((s) => s.addToCart);
   const { toggleFavorite, isFavorite, fetchFavorites } = useFavoritesStore();
@@ -26,47 +24,15 @@ export default function HomeScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const fetchProducts = async () => {
-    setLoading(true);
-
-    const [{ data: products }, { data: reviews }] = await Promise.all([
-      supabase.from("products").select("*"),
-      supabase.from("reviews").select("product_id, rating"),
-    ]);
-
-    if (products) {
-      const ratingsMap: Record<number, { sum: number; count: number }> = {};
-      reviews?.forEach((r) => {
-        if (!ratingsMap[r.product_id])
-          ratingsMap[r.product_id] = { sum: 0, count: 0 };
-        ratingsMap[r.product_id].sum += r.rating;
-        ratingsMap[r.product_id].count++;
-      });
-
-      const ratingsResult: Record<number, { avg: number; count: number }> = {};
-      Object.keys(ratingsMap).forEach((idStr) => {
-        const id = Number(idStr);
-        const { sum, count } = ratingsMap[id];
-        ratingsResult[id] = { avg: sum / count, count };
-      });
-
-      setRatings(ratingsResult);
-      setProducts(products);
-      setFiltered(products);
-    }
-
-    setLoading(false);
-  };
-
   useEffect(() => {
     fetchProducts();
     fetchFavorites();
-  }, []);
+  }, [fetchProducts, fetchFavorites]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchProducts();
-    }, [])
+      refreshProducts();
+    }, [refreshProducts])
   );
 
   useEffect(() => {
@@ -115,6 +81,8 @@ export default function HomeScreen() {
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={5}
+          windowSize={5}
           renderItem={({ item }) => {
             const ratingInfo = ratings[item.id] || { avg: 0, count: 0 };
             return (
