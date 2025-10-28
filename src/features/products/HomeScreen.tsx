@@ -1,28 +1,24 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { View, FlatList, TouchableOpacity, TextInput } from "react-native";
 import { Text, IconButton } from "react-native-paper";
 import { filterProducts } from "../../lib";
-import { useCartStore, useFavoritesStore } from "../../store";
+import { useCartStore, useFavoritesStore, useProductsStore } from "../../store";
 import ProductCard from "./components/ProductCard";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types";
 import { LoadingView, EmptyState } from "../../components";
 import { useTranslation } from "react-i18next";
-import { useProductsStore } from "../../store/useProductStore";
 
 export default function HomeScreen() {
-  const { products, ratings, loading, fetchProducts, refreshProducts } =
-    useProductsStore();
-
-  const [filtered, setFiltered] = useState(products);
-  const [query, setQuery] = useState("");
-
+  const { products, ratings, loading, fetchProducts } = useProductsStore();
   const addToCart = useCartStore((s) => s.addToCart);
   const { toggleFavorite, isFavorite, fetchFavorites } = useFavoritesStore();
   const { t } = useTranslation();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [query, setQuery] = useState("");
+  const [filtered, setFiltered] = useState(products);
 
   useEffect(() => {
     fetchProducts();
@@ -31,13 +27,13 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      refreshProducts();
-    }, [refreshProducts])
+      fetchProducts();
+    }, [fetchProducts])
   );
 
   useEffect(() => {
     setFiltered(filterProducts(products, query));
-  }, [query, products]);
+  }, [products, query]);
 
   if (loading) return <LoadingView message={t("home.loading")} />;
 
@@ -80,8 +76,6 @@ export default function HomeScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
-          showsVerticalScrollIndicator={false}
-          windowSize={5}
           renderItem={({ item }) => {
             const ratingInfo = ratings[item.id] || { avg: 0, count: 0 };
             return (
