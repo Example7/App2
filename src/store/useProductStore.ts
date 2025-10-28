@@ -15,53 +15,70 @@ interface ProductState {
 
 export const useProductsStore = create<ProductState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       products: [],
       ratings: {},
       loading: false,
 
       fetchProducts: async () => {
-        set({ loading: true });
+        try {
+          set({ loading: true });
 
-        const [
-          { data: products, error: prodErr },
-          { data: reviews, error: revErr },
-        ] = await Promise.all([
-          supabase
-            .from("products")
-            .select("id, name, price, description, image_url"),
-          supabase.from("reviews").select("product_id, rating"),
-        ]);
+          const [
+            { data: products, error: prodErr },
+            { data: reviews, error: revErr },
+          ] = await Promise.all([
+            supabase
+              .from("products")
+              .select("id, name, price, description, image_url"),
+            supabase.from("reviews").select("product_id, rating"),
+          ]);
 
-        if (prodErr || revErr) {
-          console.error("Błąd ładowania produktów:", prodErr || revErr);
+          if (prodErr || revErr) {
+            console.error("Błąd ładowania produktów:", prodErr || revErr);
+            set({ loading: false });
+            return;
+          }
+
+          const ratingsResult = mapAverageRatings(reviews || []);
+          set({
+            products: products ?? [],
+            ratings: ratingsResult ?? {},
+            loading: false,
+          });
+        } catch (e) {
+          console.error("Błąd krytyczny podczas fetchProducts:", e);
           set({ loading: false });
-          return;
         }
-
-        const ratingsResult = mapAverageRatings(reviews || []);
-        set({
-          products: products || [],
-          ratings: ratingsResult,
-          loading: false,
-        });
       },
 
       refreshProducts: async () => {
-        const [{ data: products }, { data: reviews }] = await Promise.all([
-          supabase
-            .from("products")
-            .select("id, name, price, description, image_url"),
-          supabase.from("reviews").select("product_id, rating"),
-        ]);
+        try {
+          const [{ data: products }, { data: reviews }] = await Promise.all([
+            supabase
+              .from("products")
+              .select("id, name, price, description, image_url"),
+            supabase.from("reviews").select("product_id, rating"),
+          ]);
 
-        const ratingsResult = mapAverageRatings(reviews || []);
-        set({ products: products || [], ratings: ratingsResult });
+          const ratingsResult = mapAverageRatings(reviews || []);
+          set({
+            products: products ?? [],
+            ratings: ratingsResult ?? {},
+          });
+        } catch (e) {
+          console.error("Błąd podczas refreshProducts:", e);
+        }
       },
     }),
     {
       name: "products-storage",
       storage: createJSONStorage(() => AsyncStorage),
+
+      partialize: (state) => ({
+        products: state.products,
+        ratings: state.ratings,
+      }),
     }
   )
 );

@@ -27,7 +27,7 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchProducts();
     fetchFavorites();
-  }, [fetchProducts, fetchFavorites]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -81,7 +81,6 @@ export default function HomeScreen() {
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
-          initialNumToRender={5}
           windowSize={5}
           renderItem={({ item }) => {
             const ratingInfo = ratings[item.id] || { avg: 0, count: 0 };
