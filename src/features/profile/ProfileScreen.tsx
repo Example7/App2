@@ -14,6 +14,8 @@ import { LoadingView } from "../../components";
 import { useSnackbar } from "../../hooks/useSnackbar";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "@react-navigation/native";
+import * as Sentry from "sentry-expo";
+import * as FileSystem from "expo-file-system";
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
@@ -53,7 +55,7 @@ export default function ProfileScreen() {
       .single();
 
     if (error) {
-      console.error(error);
+      Sentry.Native.captureException(error);
       snackbar.show(t("profile.fetchError"), 3000, "#e74c3c");
     } else if (data) {
       setProfile(data);
@@ -68,6 +70,12 @@ export default function ProfileScreen() {
   };
 
   const pickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      snackbar.show(t("profile.permissionDenied"), 3000, "#e74c3c");
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -83,40 +91,45 @@ export default function ProfileScreen() {
 
   const uploadAvatar = async (uri: string) => {
     try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
 
-      const fileExt = uri.split(".").pop();
-      const fileName = `${Math.random()
-        .toString()
-        .replace(".", "")}.${fileExt}`;
-      const filePath = fileName;
+      const fileExt = uri.split(".").pop() || "jpg";
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: "base64",
+      });
+
+      const fileBuffer = Buffer.from(base64, "base64");
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, blob, { contentType: blob.type });
+        .upload(filePath, fileBuffer, {
+          contentType: `image/${fileExt}`,
+          upsert: true,
+        });
 
       if (uploadError) {
-        console.error(uploadError);
+        Sentry.Native.captureException(uploadError);
         snackbar.show(t("profile.avatarError"), 3000, "#e74c3c");
         return;
       }
 
       const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      setAvatarUrl(data.publicUrl);
+      const publicUrl = data.publicUrl;
 
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      if (user) {
-        await supabase
-          .from("profiles")
-          .update({ avatar_url: data.publicUrl })
-          .eq("id", user.id);
-      }
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
 
+      setAvatarUrl(publicUrl);
       snackbar.show(t("profile.avatarUpdate"));
     } catch (err) {
-      console.error(err);
+      Sentry.Native.captureException(err);
       snackbar.show(t("profile.avatarError"), 3000, "#e74c3c");
     }
   };
@@ -149,7 +162,7 @@ export default function ProfileScreen() {
       .eq("id", profile.id);
 
     if (error) {
-      console.error(error);
+      Sentry.Native.captureException(error);
       snackbar.show(t("profile.saveError"), 3000, "#e74c3c");
     } else {
       snackbar.show(t("profile.updated"));

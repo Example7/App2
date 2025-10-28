@@ -7,6 +7,7 @@ import { useCartStore } from "../../store/useCartStore";
 import { LoadingView, EmptyState } from "../../components";
 import ProductCard from "../products/components/ProductCard";
 import { useTranslation } from "react-i18next";
+import * as Sentry from "sentry-expo";
 
 export default function FavoritesScreen() {
   const { t } = useTranslation();
@@ -37,7 +38,12 @@ export default function FavoritesScreen() {
       .select("*")
       .in("id", ids);
 
-    if (error) console.error(t("common.error"), error);
+    if (error) {
+      Sentry.Native.captureException(error, {
+        tags: { source: "FavoritesScreen.loadFavorites" },
+        extra: { message: "Błąd podczas pobierania produktów ulubionych" },
+      });
+    }
     setProducts(data || []);
     setLoading(false);
   };

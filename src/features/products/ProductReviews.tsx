@@ -11,6 +11,7 @@ import {
 import { useAuthStore } from "../../store/useAuthStore";
 import { useTranslation } from "react-i18next";
 import { renderStars, formatDate } from "../../lib";
+import * as Sentry from "sentry-expo";
 
 export default function ProductReviews({ productId }: { productId: number }) {
   const { t } = useTranslation();
@@ -73,7 +74,7 @@ export default function ProductReviews({ productId }: { productId: number }) {
     ]);
 
     if (error) {
-      console.error(error);
+      Sentry.Native.captureException(error);
       alert(t("reviews.error"));
     } else {
       setReviews((prev) => [newReview, ...prev]);

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase, mapAverageRatings } from "../lib";
 import { Product } from "../types";
+import * as Sentry from "sentry-expo";
 
 interface ProductState {
   products: Product[];
@@ -29,7 +30,13 @@ export const useProductsStore = create<ProductState>((set, get) => ({
     ]);
 
     if (prodErr || revErr) {
-      console.error("Błąd ładowania produktów:", prodErr || revErr);
+      const err = prodErr || revErr;
+
+      Sentry.Native.captureException(err, {
+        tags: { source: "fetchProducts" },
+        extra: { message: "Błąd ładowania produktów z Supabase" },
+      });
+
       set({ loading: false });
       return;
     }
@@ -54,12 +61,9 @@ export const useProductsStore = create<ProductState>((set, get) => ({
         "postgres_changes",
         { event: "*", schema: "public", table: "products" },
         async () => {
-          console.log("📡 Zmiana w tabeli products — odświeżam dane");
           await get().fetchProducts();
         }
       )
       .subscribe();
-
-    console.log("Realtime dla products uruchomiony", channel);
   },
 }));

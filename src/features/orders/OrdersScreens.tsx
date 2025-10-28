@@ -5,6 +5,7 @@ import { supabase, formatDate, formatPrice, shortId } from "../../lib";
 import { Order, OrderItem } from "../../types";
 import { LoadingView, EmptyState } from "../../components";
 import { useTranslation } from "react-i18next";
+import * as Sentry from "sentry-expo";
 
 type FilterKey = "all" | "in_progress" | "completed" | "cancelled";
 
@@ -61,7 +62,7 @@ export default function OrdersScreen() {
       .order("created_at", { ascending: sortOrder === "asc" });
 
     if (ordersError) {
-      console.error(ordersError);
+      Sentry.Native.captureException(ordersError);
       alert(t("common.error"));
       setLoading(false);
       return;
@@ -84,7 +85,7 @@ export default function OrdersScreen() {
         );
 
       if (itemsError) {
-        console.error(itemsError);
+        Sentry.Native.captureException(itemsError);
         alert(t("orders.itemsError"));
       } else {
         setOrderItems(itemsData || []);

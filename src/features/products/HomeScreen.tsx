@@ -22,11 +22,13 @@ export default function HomeScreen() {
   const [filtered, setFiltered] = useState(products);
 
   useEffect(() => {
-    const store = useProductsStore.getState();
-    fetchProducts();
-    fetchFavorites();
+    const loadAll = async () => {
+      const store = useProductsStore.getState();
+      await Promise.all([fetchProducts(), fetchFavorites()]);
 
-    store.initRealtime();
+      store.initRealtime();
+    };
+    loadAll();
   }, []);
 
   useFocusEffect(

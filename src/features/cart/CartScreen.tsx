@@ -7,6 +7,7 @@ import { formatPrice } from "../../lib/helpers";
 import { EmptyState } from "../../components";
 import { useSnackbar } from "../../hooks/useSnackbar";
 import { useTranslation } from "react-i18next";
+import * as Sentry from "sentry-expo";
 
 export default function CartScreen() {
   const { items, removeFromCart, clearCart, getTotal, getCount } =
@@ -43,7 +44,7 @@ export default function CartScreen() {
       .single();
 
     if (orderError) {
-      console.error(orderError);
+      orderError;
       snackbar.show(t("cart.orderError"), 3000, "#e74c3c");
       return;
     }
@@ -60,7 +61,7 @@ export default function CartScreen() {
       .insert(orderItems);
 
     if (itemsError) {
-      console.error(itemsError);
+      Sentry.Native.captureException(itemsError);
       snackbar.show(t("cart.itemsError"), 3000, "#e74c3c");
       return;
     }
