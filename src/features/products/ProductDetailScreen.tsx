@@ -135,13 +135,6 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
           onPress={handleAddToCart}
           label={t("home.addToCart")}
         />
-
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          onPress={() => navigation.goBack()}
-          style={{ marginTop: 12, alignSelf: "center" }}
-        />
       </View>
     </ScrollView>
   );

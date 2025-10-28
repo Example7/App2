@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, FlatList, TouchableOpacity, TextInput } from "react-native";
 import { Text, IconButton } from "react-native-paper";
 import { supabase } from "../../lib";
 import { useCartStore, useFavoritesStore } from "../../store";
 import ProductCard from "./components/ProductCard";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types";
 import { LoadingView, EmptyState } from "../../components";
@@ -14,8 +14,9 @@ import { useTranslation } from "react-i18next";
 export default function HomeScreen() {
   const [products, setProducts] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
-  const [ratings, setRatings] = useState<Record<number, number>>({});
-  const [reviewCounts, setReviewCounts] = useState<Record<number, number>>({});
+  const [ratings, setRatings] = useState<
+    Record<number, { avg: number; count: number }>
+  >({});
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -24,11 +25,6 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  useEffect(() => {
-    fetchProducts();
-    fetchFavorites();
-  }, []);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -39,18 +35,39 @@ export default function HomeScreen() {
     ]);
 
     if (products) {
+      const ratingsMap: Record<number, { sum: number; count: number }> = {};
+      reviews?.forEach((r) => {
+        if (!ratingsMap[r.product_id])
+          ratingsMap[r.product_id] = { sum: 0, count: 0 };
+        ratingsMap[r.product_id].sum += r.rating;
+        ratingsMap[r.product_id].count++;
+      });
+
+      const ratingsResult: Record<number, { avg: number; count: number }> = {};
+      Object.keys(ratingsMap).forEach((idStr) => {
+        const id = Number(idStr);
+        const { sum, count } = ratingsMap[id];
+        ratingsResult[id] = { avg: sum / count, count };
+      });
+
+      setRatings(ratingsResult);
       setProducts(products);
       setFiltered(products);
     }
 
-    if (reviews) {
-      const { averages, counts } = calculateAverageRatings(reviews);
-      setRatings(averages);
-      setReviewCounts(counts);
-    }
-
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchFavorites();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProducts();
+    }, [])
+  );
 
   useEffect(() => {
     setFiltered(filterProducts(products, query));
@@ -83,12 +100,7 @@ export default function HomeScreen() {
           placeholder={t("home.searchPlaceholder")}
           value={query}
           onChangeText={setQuery}
-          style={{
-            flex: 1,
-            fontSize: 16,
-            paddingVertical: 8,
-            color: "#222",
-          }}
+          style={{ flex: 1, fontSize: 16, paddingVertical: 8, color: "#222" }}
           placeholderTextColor="#888"
         />
         {query.length > 0 && (
@@ -103,22 +115,25 @@ export default function HomeScreen() {
           data={filtered}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("ProductDetails", { product: item })
-              }
-            >
-              <ProductCard
-                product={item}
-                avgRating={ratings[item.id] || 0}
-                reviewCount={reviewCounts[item.id] || 0}
-                isFavorite={isFavorite(item.id)}
-                onToggleFavorite={() => toggleFavorite(item.id)}
-                onAddToCart={() => addToCart(item)}
-              />
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            const ratingInfo = ratings[item.id] || { avg: 0, count: 0 };
+            return (
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("ProductDetails", { product: item })
+                }
+              >
+                <ProductCard
+                  product={item}
+                  avgRating={ratingInfo.avg}
+                  reviewCount={ratingInfo.count}
+                  isFavorite={isFavorite(item.id)}
+                  onToggleFavorite={() => toggleFavorite(item.id)}
+                  onAddToCart={() => addToCart(item)}
+                />
+              </TouchableOpacity>
+            );
+          }}
         />
       )}
     </View>

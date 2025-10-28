@@ -18,6 +18,7 @@ export default function DashboardScreen() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [pieData, setPieData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { role } = useAuthStore();
 
   useEffect(() => {
@@ -27,14 +28,28 @@ export default function DashboardScreen() {
   }, [role]);
 
   const fetchStats = async () => {
+    setLoading(true);
+
     const { data: orders, error } = await supabase
       .from("orders")
       .select("status, total, created_at");
 
-    if (error || !orders) return;
+    if (error) {
+      console.error("Błąd pobierania statystyk:", error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!orders || orders.length === 0) {
+      setChartData([]);
+      setDailyData([]);
+      setPieData([]);
+      setLoading(false);
+      return;
+    }
 
     const grouped = orders.reduce((acc: any, o: any) => {
-      acc[o.status] = (acc[o.status] || 0) + Number(o.total);
+      acc[o.status] = (acc[o.status] || 0) + Number(o.total || 0);
       return acc;
     }, {});
     const barData = Object.entries(grouped).map(([status, total]) => ({
@@ -43,8 +58,8 @@ export default function DashboardScreen() {
     }));
 
     const daily = orders.reduce((acc: any, o: any) => {
-      const date = o.created_at.split("T")[0];
-      acc[date] = (acc[date] || 0) + Number(o.total);
+      const date = o.created_at?.split("T")[0];
+      if (date) acc[date] = (acc[date] || 0) + Number(o.total || 0);
       return acc;
     }, {});
     const lineData = Object.entries(daily).map(([date, total]) => ({
@@ -52,15 +67,19 @@ export default function DashboardScreen() {
       total,
     }));
 
-    const totalSum = orders.reduce((sum, o) => sum + Number(o.total), 0);
+    const totalSum = Object.values(grouped).reduce(
+      (sum: number, val: any) => sum + Number(val || 0),
+      0
+    );
     const pie = Object.entries(grouped).map(([status, total]) => ({
       x: status,
-      y: Math.round((Number(total) / totalSum) * 100),
+      y: totalSum > 0 ? Math.round((Number(total) / totalSum) * 100) : 0,
     }));
 
     setChartData(barData);
     setDailyData(lineData);
     setPieData(pie);
+    setLoading(false);
   };
 
   if (role !== "admin") {
@@ -84,6 +103,21 @@ export default function DashboardScreen() {
     );
   }
 
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#f9f9f9",
+        }}
+      >
+        <Text>{t("dashboard.loading") || "Wczytywanie danych..."}</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: "#f9f9f9" }}
@@ -93,68 +127,87 @@ export default function DashboardScreen() {
         {t("dashboard.title")}
       </Text>
 
-      <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>
-        {t("dashboard.ordersByStatus")}
-      </Text>
-      <VictoryChart
-        theme={VictoryTheme.material}
-        domainPadding={25}
-        animate={{ duration: 800 }}
-      >
-        <VictoryAxis
-          style={{ tickLabels: { fontSize: 12, angle: 0, padding: 8 } }}
-        />
-        <VictoryAxis
-          dependentAxis
-          tickFormat={(x: number) => `${x} zł`}
-          style={{ tickLabels: { fontSize: 10 } }}
-        />
-        <VictoryBar
-          data={chartData}
-          x="status"
-          y="total"
-          style={{ data: { fill: "#4caf50", borderRadius: 4 } }}
-          labels={({ datum }: any) => `${datum.total} zł`}
-          labelComponent={<VictoryLabel dy={-10} />}
-        />
-      </VictoryChart>
+      {chartData.length > 0 ? (
+        <>
+          <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>
+            {t("dashboard.ordersByStatus")}
+          </Text>
+          <VictoryChart
+            theme={VictoryTheme.material}
+            domainPadding={25}
+            animate={{ duration: 800 }}
+          >
+            <VictoryAxis
+              style={{ tickLabels: { fontSize: 12, angle: 0, padding: 8 } }}
+            />
+            <VictoryAxis
+              dependentAxis
+              tickFormat={(x: number) => `${x} zł`}
+              style={{ tickLabels: { fontSize: 10 } }}
+            />
+            <VictoryBar
+              data={chartData}
+              x="status"
+              y="total"
+              style={{ data: { fill: "#4caf50", borderRadius: 4 } }}
+              labels={({ datum }: any) => `${datum.total} zł`}
+              labelComponent={<VictoryLabel dy={-10} />}
+            />
+          </VictoryChart>
+        </>
+      ) : (
+        <Text style={{ color: "#777", fontStyle: "italic" }}>
+          {t("dashboard.noData")}
+        </Text>
+      )}
 
-      <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
-        {t("dashboard.dailySales")}
-      </Text>
-      <VictoryChart theme={VictoryTheme.material} animate={{ duration: 800 }}>
-        <VictoryAxis
-          fixLabelOverlap
-          tickFormat={(t: string) => t.slice(5)}
-          style={{ tickLabels: { fontSize: 10 } }}
-        />
-        <VictoryAxis
-          dependentAxis
-          tickFormat={(x: number) => `${x} zł`}
-          style={{ tickLabels: { fontSize: 10 } }}
-        />
-        <VictoryLine
-          data={dailyData}
-          x="date"
-          y="total"
-          style={{
-            data: { stroke: "#2196f3", strokeWidth: 3 },
-          }}
-        />
-      </VictoryChart>
+      {dailyData.length > 0 && (
+        <>
+          <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
+            {t("dashboard.dailySales")}
+          </Text>
+          <VictoryChart
+            theme={VictoryTheme.material}
+            animate={{ duration: 800 }}
+          >
+            <VictoryAxis
+              fixLabelOverlap
+              tickFormat={(t: string) => t.slice(5)}
+              style={{ tickLabels: { fontSize: 10 } }}
+            />
+            <VictoryAxis
+              dependentAxis
+              tickFormat={(x: number) => `${x} zł`}
+              style={{ tickLabels: { fontSize: 10 } }}
+            />
+            <VictoryLine
+              data={dailyData}
+              x="date"
+              y="total"
+              style={{
+                data: { stroke: "#2196f3", strokeWidth: 3 },
+              }}
+            />
+          </VictoryChart>
+        </>
+      )}
 
-      <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
-        {t("dashboard.orderStatusShare")}
-      </Text>
-      <VictoryPie
-        data={pieData}
-        colorScale={["#f1c40f", "#2ecc71", "#e74c3c", "#3498db"]}
-        labels={({ datum }: any) => `${datum.x}: ${datum.y}%`}
-        innerRadius={50}
-        labelRadius={80}
-        style={{ labels: { fontSize: 14, fill: "#333" } }}
-        animate={{ duration: 800 }}
-      />
+      {pieData.length > 0 && (
+        <>
+          <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
+            {t("dashboard.orderStatusShare")}
+          </Text>
+          <VictoryPie
+            data={pieData}
+            colorScale={["#f1c40f", "#2ecc71", "#e74c3c", "#3498db"]}
+            labels={({ datum }: any) => `${datum.x}: ${datum.y}%`}
+            innerRadius={50}
+            labelRadius={80}
+            style={{ labels: { fontSize: 14, fill: "#333" } }}
+            animate={{ duration: 800 }}
+          />
+        </>
+      )}
     </ScrollView>
   );
 }

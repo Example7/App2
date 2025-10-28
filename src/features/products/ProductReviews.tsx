@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { supabase } from "../../lib";
-import { ActivityIndicator, TextInput, Button, Card } from "react-native-paper";
+import {
+  ActivityIndicator,
+  TextInput,
+  Button,
+  Card,
+  Icon,
+} from "react-native-paper";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useTranslation } from "react-i18next";
 import { renderStars, formatDate } from "../../lib";
@@ -44,6 +50,19 @@ export default function ProductReviews({ productId }: { productId: number }) {
     }
 
     setSubmitting(true);
+
+    const newReview = {
+      id: crypto.randomUUID(),
+      user_id: session.user.id,
+      product_id: productId,
+      rating,
+      comment,
+      created_at: new Date().toISOString(),
+      profiles: {
+        full_name: session.user.user_metadata?.full_name || t("reviews.you"),
+      },
+    };
+
     const { error } = await supabase.from("reviews").insert([
       {
         user_id: session.user.id,
@@ -57,9 +76,9 @@ export default function ProductReviews({ productId }: { productId: number }) {
       console.error(error);
       alert(t("reviews.error"));
     } else {
+      setReviews((prev) => [newReview, ...prev]);
       setComment("");
       setRating(0);
-      fetchReviews();
     }
 
     setSubmitting(false);
@@ -135,13 +154,17 @@ export default function ProductReviews({ productId }: { productId: number }) {
               justifyContent: "flex-start",
             }}
           >
-            {[1, 2, 3, 4, 5].map((value) => (
+            {[...Array(5)].map((_, i) => (
               <TouchableOpacity
-                key={value}
-                onPress={() => setRating(value)}
+                key={i}
+                onPress={() => setRating(i + 1)}
                 activeOpacity={0.6}
               >
-                {renderStars(value <= rating ? value : 0)}
+                <Icon
+                  source={i < rating ? "star" : "star-outline"}
+                  color={i < rating ? "#FFD700" : "#ccc"}
+                  size={28}
+                />
               </TouchableOpacity>
             ))}
           </View>
